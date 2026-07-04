@@ -1209,6 +1209,8 @@ function recalc(){
   updateDonutCardForSelectedYear();
 
   updateCharts(withOP, baseline, propertyValue);
+
+  saveState();
 }
 
 function updateCharts(withOP, baseline, propertyValue){
@@ -1582,10 +1584,62 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   renderLumpSumRows();
   remortgages = [];
   renderRemortgageRows();
+  clearSavedState();
   recalc();
 });
 
+// ---- Save / load to localStorage ----
+const STORAGE_KEY = 'mortgageDashboardState_v1';
+
+function saveState(){
+  try{
+    const fieldIds = ['startMonth','startYear','propertyValue','loanBalance','yearsRemaining',
+      'currentRate','fixedEndYear','variableRate','regularOverpay','overpayCap','bonusMonth','bonusAmount'];
+    const fields = {};
+    fieldIds.forEach(id => { fields[id] = document.getElementById(id).value; });
+    const state = {
+      fields,
+      remortgageEnabled: document.getElementById('remortgageEnabled').checked,
+      lumpSums,
+      remortgages
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.error('Could not save mortgage dashboard state:', e);
+  }
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const state = JSON.parse(raw);
+    if(state.fields){
+      Object.keys(state.fields).forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = state.fields[id];
+      });
+    }
+    if(typeof state.remortgageEnabled === 'boolean'){
+      document.getElementById('remortgageEnabled').checked = state.remortgageEnabled;
+      document.getElementById('remortgageFields').style.opacity = state.remortgageEnabled ? '1' : '.4';
+      document.getElementById('remortgageFields').style.pointerEvents = state.remortgageEnabled ? 'auto' : 'none';
+    }
+    if(Array.isArray(state.lumpSums)) lumpSums = state.lumpSums;
+    if(Array.isArray(state.remortgages)) remortgages = state.remortgages;
+    return true;
+  }catch(e){
+    console.error('Could not load saved mortgage dashboard state:', e);
+    return false;
+  }
+}
+
+function clearSavedState(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+}
+
 attachMoneyFormatting();
+loadState();
 renderLumpSumRows();
 renderRemortgageRows();
 recalc();

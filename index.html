@@ -1,0 +1,1648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mortgage Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#0f2a24;
+    --teal:#0e8f6f;
+    --teal-dark:#0a6e56;
+    --teal-pale:#e4f5f0;
+    --orange:#e8823a;
+    --orange-pale:#fbe9dc;
+    --gold:#e0b23a;
+    --red:#c1503f;
+    --blue:#3f6fd1;
+    --bg:#f4f6f5;
+    --panel:#ffffff;
+    --sidebar:#122622;
+    --sidebar-hover:#1b3b34;
+    --line:#e7ece9;
+    --text:#1c2b27;
+    --muted:#6c7d78;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    min-height:100vh;
+  }
+  /* Sidebar */
+  .sidebar{
+    width:76px;
+    background:var(--sidebar);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 0;
+    flex-shrink:0;
+  }
+  .sidebar .logo{
+    width:38px;height:38px;border-radius:10px;
+    background:linear-gradient(135deg,var(--teal),var(--gold));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;font-size:16px;margin-bottom:28px;
+  }
+  .sidebar nav{display:flex;flex-direction:column;gap:6px;width:100%;align-items:center;}
+  .sidebar button{
+    width:44px;height:44px;border-radius:10px;border:none;background:transparent;
+    color:#9fb3ad;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .15s, color .15s;
+  }
+  .sidebar button svg{width:20px;height:20px;}
+  .sidebar button.active{background:var(--teal);color:#fff;}
+  .sidebar button:hover:not(.active){background:var(--sidebar-hover);color:#fff;}
+  .sidebar .spacer{flex:1;}
+  .sidebar .avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px;margin-top:8px;
+  }
+
+  /* Main layout */
+  .main{flex:1;display:flex;min-width:0;flex-wrap:wrap;justify-content:center;}
+  .content{flex:1 1 640px;padding:32px 28px;min-width:0;max-width:1400px;}
+  .rightrail{width:300px;flex:0 0 300px;padding:32px 28px 32px 0;}
+
+  header.top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;flex-wrap:wrap;gap:14px;}
+  header.top h1{font-size:26px;margin:0 0 4px;letter-spacing:-0.02em;}
+  header.top p{margin:0;color:var(--muted);font-size:14px;}
+  .top-actions{display:flex;gap:10px;}
+  .btn{
+    border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;
+    cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:opacity .15s, transform .05s;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:var(--teal);color:#fff;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line);}
+  .btn-ghost:hover{background:#f3f5f4;}
+
+  /* Stat row */
+  .stat-row{display:flex;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .stat-card{
+    flex:1;min-width:180px;background:var(--panel);border-radius:14px;padding:18px 20px;
+    border:1px solid var(--line);
+  }
+  .stat-card .dot-label{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);margin-bottom:10px;font-weight:600;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot.teal{background:var(--teal);}
+  .dot.orange{background:var(--orange);}
+  .dot.gold{background:var(--gold);}
+  .dot.red{background:var(--red);}
+  .dot.blue{background:var(--blue);}
+  .stat-card .value{font-size:27px;font-weight:800;letter-spacing:-0.02em;}
+  .stat-card .sub{font-size:12px;color:var(--muted);margin-top:4px;}
+
+  /* Panels */
+  .panels-row{display:flex;gap:16px;margin-bottom:16px;align-items:stretch;flex-wrap:wrap;}
+  .setup-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  .panel{background:var(--panel);border-radius:14px;border:1px solid var(--line);padding:20px 22px;}
+  .panel h2{font-size:15px;margin:0 0 16px;font-weight:700;}
+  .panel h2 .muted-tag{font-weight:500;color:var(--muted);font-size:12px;margin-left:6px;}
+
+  .panel-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+  .panel-head-left{display:flex;align-items:center;gap:12px;}
+  .panel-head h2{margin:0;}
+  .chevron-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;flex-shrink:0;}
+  .chevron-btn:hover{background:#f3f5f4;color:var(--text);}
+  .chevron-btn svg{width:16px;height:16px;transition:transform .2s ease;}
+  .panel.collapsed .chevron-btn svg{transform:rotate(-90deg);}
+  .panel-body{overflow:hidden;max-height:1200px;opacity:1;transition:max-height .28s ease, opacity .2s ease, margin-top .2s ease;margin-top:16px;}
+  .panel.collapsed .panel-body{max-height:0;opacity:0;margin-top:0;pointer-events:none;}
+  .panel-head-right{display:flex;align-items:center;gap:14px;}
+
+  .chart-panel{flex:1.3;min-width:320px;}
+  .donut-panel{flex:1;min-width:280px;display:flex;flex-direction:column;}
+  .donut-wrap{display:flex;align-items:center;gap:20px;flex:1;}
+  .donut-wrap canvas{max-width:150px;max-height:150px;}
+  .legend{display:flex;flex-direction:column;gap:10px;font-size:13px;}
+  .legend .row{display:flex;align-items:center;gap:8px;}
+  .legend .row span.val{margin-left:auto;font-weight:700;color:var(--muted);font-size:12px;}
+
+  .clickable-panel{cursor:pointer;transition:box-shadow .15s, border-color .15s;}
+  .clickable-panel:hover{box-shadow:0 2px 14px rgba(15,42,36,0.08);border-color:#d7e2de;}
+  .panel-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .panel-card-head h2{margin:0;}
+  .expand-hint{font-size:11.5px;color:var(--muted);opacity:0;transition:opacity .15s;white-space:nowrap;}
+  .clickable-panel:hover .expand-hint{opacity:1;}
+  .donut-filter-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12.5px;color:var(--muted);font-weight:600;}
+  .donut-filter-row select{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;font-family:inherit;color:var(--text);background:#fbfcfc;}
+  .donut-filter-row select:focus{outline:2px solid var(--teal);outline-offset:1px;}
+
+  /* Modal */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(15,26,23,0.55);z-index:1000;
+    align-items:center;justify-content:center;padding:24px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--panel);border-radius:16px;width:100%;max-width:1100px;max-height:88vh;
+    display:flex;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal-main{flex:1.6;padding:26px 28px;display:flex;flex-direction:column;min-width:0;overflow:auto;}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .modal-header h2{margin:0;font-size:18px;}
+  .modal-close{background:#f3f5f4;border:none;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .modal-close:hover{background:#e7ece9;color:var(--text);}
+  .modal-chart-wrap{flex:1;min-height:340px;position:relative;}
+  .modal-donut-wrap{display:flex;align-items:center;justify-content:center;}
+  .modal-donut-wrap canvas{max-height:420px;}
+  .modal-side{flex:1;min-width:270px;max-width:320px;background:#fbfcfc;border-left:1px solid var(--line);padding:26px 22px;overflow:auto;}
+  .modal-side .field label{margin-bottom:6px;display:block;}
+  .modal-side .field select{width:100%;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;font-family:inherit;}
+  .modal-stat-list{display:flex;flex-direction:column;gap:14px;}
+  .modal-stat{border-bottom:1px solid var(--line);padding-bottom:12px;}
+  .modal-stat:last-child{border-bottom:none;}
+  .modal-stat .m-label{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
+  .modal-stat .m-value{font-size:19px;font-weight:800;letter-spacing:-0.01em;}
+  .modal-stat .m-value.teal{color:var(--teal-dark);}
+  .modal-stat .m-value.orange{color:#a85a1f;}
+  .modal-stat .m-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  @media(max-width:760px){
+    .modal-box{flex-direction:column;max-height:92vh;}
+    .modal-side{max-width:none;border-left:none;border-top:1px solid var(--line);}
+  }
+
+  table.contracts{width:100%;min-width:640px;border-collapse:collapse;font-size:13.5px;}
+  table.contracts th{
+    text-align:left;color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.05em;
+    text-transform:uppercase;padding:10px 10px;border-bottom:1px solid var(--line);
+    position:sticky;top:0;background:var(--panel);z-index:1;
+  }
+  table.contracts td{padding:12px 10px;border-bottom:1px solid var(--line);}
+  table.contracts tr:last-child td{border-bottom:none;}
+  table.contracts tr.year-row{cursor:pointer;transition:background .12s;}
+  table.contracts tr.year-row:hover{background:#f6f9f8;}
+
+  /* Right rail */
+  .rail-block{background:var(--panel);border-radius:14px;border:1px solid var(--line);padding:20px 20px;margin-bottom:16px;}
+  .rail-block h3{font-size:14px;margin:0 0 14px;font-weight:700;}
+  .bar-item{margin-bottom:14px;}
+  .bar-item:last-child{margin-bottom:0;}
+  .bar-item .lbl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;}
+  .bar-item .lbl b{font-weight:700;}
+  .bar-track{height:6px;border-radius:4px;background:#eef1f0;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:4px;transition:width .2s;}
+
+  .cycle-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .cycle-cell{border-left:3px solid var(--teal);padding-left:10px;}
+  .cycle-cell .num{font-size:20px;font-weight:800;}
+  .cycle-cell .num span{font-size:11px;font-weight:600;color:var(--muted);margin-left:2px;}
+  .cycle-cell .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* Forms */
+  .field-grid{display:grid;gap:12px 14px;min-width:0;}
+  .field-grid[data-cols="6"]{grid-template-columns:repeat(6,1fr);}
+  .field-grid[data-cols="2"]{grid-template-columns:repeat(2,1fr);}
+  .field-grid[data-cols="5"]{grid-template-columns:repeat(5,1fr);}
+  .field-grid > .field{min-width:0;}
+  .field{display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .field label{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .field input, .field select{
+    border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px;
+    font-family:inherit;color:var(--text);background:#fbfcfc;
+    width:100%;box-sizing:border-box;
+  }
+  .field .prefix-wrap, .field .suffix-wrap{width:100%;}
+  .field input::placeholder{color:#b7c2be;}
+  .field input:focus, .field select:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+  .field .prefix-wrap{position:relative;}
+  .field .prefix-wrap span.prefix{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
+  .field .prefix-wrap input{padding-left:22px;}
+  .field .suffix-wrap{position:relative;}
+  .field .suffix-wrap span.suffix{position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;pointer-events:none;}
+  .field .suffix-wrap input{padding-right:26px;}
+
+  .divider{height:1px;background:var(--line);margin:18px 0;}
+
+  .overpay-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+  .overpay-row{display:flex;gap:8px;align-items:center;background:#fbfcfc;border:1px solid var(--line);border-radius:9px;padding:8px 10px;flex-wrap:wrap;}
+  .overpay-row input, .overpay-row select{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:13px;font-family:inherit;background:#fff;}
+  .overpay-row .rm{margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1;padding:4px;}
+  .add-link{background:none;border:1px dashed var(--line);color:var(--teal-dark);font-weight:600;font-size:13px;border-radius:9px;padding:9px;cursor:pointer;width:100%;}
+  .add-link:hover{background:var(--teal-pale);}
+
+  .remortgage-list{display:flex;flex-direction:column;gap:12px;margin-bottom:12px;}
+  .remortgage-entry{background:#fbfcfc;border:1px solid var(--line);border-radius:11px;padding:14px 16px;}
+  .remortgage-entry-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .remortgage-entry-head b{font-size:13px;font-weight:700;}
+  .remortgage-entry-head .rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;line-height:1;padding:2px 4px;}
+  .remortgage-entry .field-grid{grid-template-columns:repeat(5,1fr);}
+  @media(max-width:900px){.remortgage-entry .field-grid{grid-template-columns:repeat(2,1fr);}}
+
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .switch{position:relative;width:38px;height:22px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch .track{position:absolute;inset:0;background:#d8dedb;border-radius:20px;cursor:pointer;transition:.15s;}
+  .switch .track:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;}
+  .switch input:checked + .track{background:var(--teal);}
+  .switch input:checked + .track:before{transform:translateX(16px);}
+
+  .banner{background:var(--teal-pale);border:1px solid #cdeadf;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--teal-dark);margin-top:14px;line-height:1.5;}
+  .banner b{font-weight:800;}
+  .banner.warn{background:var(--orange-pale);border-color:#f3d3b3;color:#8a4a17;}
+  .banner.neutral{background:#f3f5f4;border-color:var(--line);color:var(--muted);}
+
+  .empty-note{font-size:12.5px;color:var(--muted);text-align:center;padding:30px 10px;}
+
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#d3dad7;border-radius:8px;}
+
+  /* ---- Responsive cascade ---- */
+
+  /* Large tablets / small laptops: right rail drops below content, becomes a row of cards */
+  @media(max-width:1180px){
+    .main{flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;}
+    .content{max-width:100%;flex-basis:auto;}
+    .rightrail{width:100%;flex:1 1 auto;padding:0 28px 32px;}
+    .rightrail{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+    .rightrail .rail-block{margin-bottom:0;}
+  }
+
+  /* Tablets */
+  @media(max-width:900px){
+    .field-grid[data-cols="6"]{grid-template-columns:repeat(3,1fr);}
+    .field-grid[data-cols="5"]{grid-template-columns:repeat(3,1fr);}
+    .setup-grid{gap:12px;}
+  }
+
+  /* Small tablets / large phones */
+  @media(max-width:760px){
+    body{flex-direction:column;}
+    .sidebar{width:100%;flex-direction:row;padding:10px 16px;justify-content:space-between;}
+    .sidebar .logo{margin-bottom:0;}
+    .sidebar nav{flex-direction:row;width:auto;}
+    .sidebar .spacer{display:none;}
+    .content{padding:20px 16px;}
+    .rightrail{grid-template-columns:1fr 1fr;padding:0 16px 24px;}
+    header.top{align-items:stretch;}
+    header.top h1{font-size:22px;}
+    .top-actions{width:100%;}
+    .top-actions .btn{flex:1;justify-content:center;}
+    .stat-card{min-width:140px;}
+    .panels-row{gap:12px;}
+    .chart-panel, .donut-panel{min-width:0;flex-basis:100%;}
+    .donut-wrap{flex-wrap:wrap;justify-content:center;}
+    .legend{width:100%;}
+    .legend .row{flex-wrap:wrap;}
+    .field-grid[data-cols="6"], .field-grid[data-cols="5"], .field-grid[data-cols="2"]{grid-template-columns:repeat(2,1fr);}
+    .remortgage-entry .field-grid{grid-template-columns:repeat(2,1fr);}
+    .overpay-row{gap:6px;}
+  }
+
+  /* Phones */
+  @media(max-width:520px){
+    .sidebar nav{gap:2px;}
+    .sidebar button{width:38px;height:38px;}
+    .content{padding:16px 12px;}
+    .rightrail{grid-template-columns:1fr;padding:0 12px 20px;}
+    .stat-row{gap:10px;}
+    .stat-card{min-width:100%;padding:14px 16px;}
+    .stat-card .value{font-size:22px;}
+    .panel{padding:16px 16px;}
+    .field-grid[data-cols="6"], .field-grid[data-cols="5"], .field-grid[data-cols="2"]{grid-template-columns:1fr;}
+    .remortgage-entry .field-grid{grid-template-columns:1fr;}
+    .cycle-grid{grid-template-columns:1fr;}
+    .overpay-row{flex-wrap:wrap;}
+    .overpay-row input[type="number"], .overpay-row input[type="text"]{width:100% !important;}
+    .modal-header h2{font-size:16px;}
+    .modal-main{padding:18px 16px;}
+    .modal-side{padding:18px 16px;}
+    .modal-chart-wrap{min-height:240px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">M</div>
+  <nav>
+    <button class="active" title="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    </button>
+    <button title="Overpayments">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </button>
+    <button title="Term">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+    </button>
+    <button title="Remortgage">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h13M4 14l4-4M4 14l4 4M20 10H7M20 10l-4-4M20 10l-4 4"/></svg>
+    </button>
+    <button title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </nav>
+  <div class="spacer"></div>
+  <div class="avatar">JD</div>
+</div>
+
+<div class="main">
+  <div class="content">
+    <header class="top">
+      <div>
+        <h1>Mortgage Dashboard</h1>
+        <p id="headerSub">Your mortgage progress, overpayment impact and remortgage outlook. Enter your details in the panels at the bottom.</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn btn-ghost" id="clearBtn">Clear all</button>
+      </div>
+    </header>
+
+
+    <!-- Top stats -->
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="dot-label"><span class="dot teal"></span>Current balance</div>
+        <div class="value" id="statBalance">--</div>
+        <div class="sub" id="statBalanceSub">of original loan</div>
+      </div>
+      <div class="stat-card">
+        <div class="dot-label"><span class="dot gold"></span>Equity built</div>
+        <div class="value" id="statEquity">--</div>
+        <div class="sub" id="statEquitySub">-- of property value</div>
+      </div>
+      <div class="stat-card">
+        <div class="dot-label"><span class="dot orange"></span>Payoff date</div>
+        <div class="value" id="statPayoff">--</div>
+        <div class="sub" id="statPayoffSub">on current plan</div>
+      </div>
+      <div class="stat-card">
+        <div class="dot-label"><span class="dot red"></span>Time / interest saved</div>
+        <div class="value" id="statSaved">--</div>
+        <div class="sub" id="statSavedSub">vs. no overpayments</div>
+      </div>
+    </div>
+
+    <!-- Charts row -->
+    <div class="panels-row">
+      <div class="panel chart-panel clickable-panel" id="balancePanel">
+        <div class="panel-card-head">
+          <h2>Balance &amp; Equity Over Time <span class="muted-tag">baseline vs. with overpayments</span></h2>
+          <span class="expand-hint">Click to expand ⤢</span>
+        </div>
+        <div id="chartWrap"><canvas id="balanceChart" height="150"></canvas></div>
+        <div class="empty-note" id="chartEmpty" style="display:none;">Your balance and equity chart will appear here once you've entered your mortgage details.</div>
+      </div>
+      <div class="panel donut-panel clickable-panel" id="donutPanel">
+        <div class="panel-card-head">
+          <h2>Where Your Payment Goes</h2>
+          <span class="expand-hint">Click to expand ⤢</span>
+        </div>
+        <div class="donut-filter-row" onclick="event.stopPropagation()">
+          <label for="donutYearSelect">Year</label>
+          <select id="donutYearSelect"></select>
+        </div>
+        <div class="donut-wrap" id="donutWrap">
+          <canvas id="donutChart"></canvas>
+          <div class="legend">
+            <div class="row"><span class="dot teal"></span>Principal <span class="val" id="legPrincipal">--</span></div>
+            <div class="row"><span class="dot orange"></span>Interest <span class="val" id="legInterest">--</span></div>
+            <div class="row"><span class="dot gold"></span>Overpayments <span class="val" id="legOverpay">--</span></div>
+          </div>
+        </div>
+        <div class="empty-note" id="donutEmpty" style="display:none;">This will fill in once you've entered your mortgage details.</div>
+      </div>
+    </div>
+
+    <!-- Balance & Equity modal -->
+    <div class="modal-overlay" id="balanceModalOverlay">
+      <div class="modal-box">
+        <div class="modal-main">
+          <div class="modal-header">
+            <h2>Balance &amp; Equity Over Time</h2>
+            <button class="modal-close" data-close="balanceModalOverlay" aria-label="Close">&times;</button>
+          </div>
+          <div class="modal-chart-wrap"><canvas id="balanceModalChart"></canvas></div>
+        </div>
+        <div class="modal-side">
+          <div class="field" style="margin-bottom:18px;">
+            <label>Year</label>
+            <select id="balanceModalYearSelect"></select>
+          </div>
+          <div class="modal-stat-list" id="balanceModalStats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Where Your Payment Goes modal -->
+    <div class="modal-overlay" id="donutModalOverlay">
+      <div class="modal-box">
+        <div class="modal-main">
+          <div class="modal-header">
+            <h2>Where Your Payment Goes</h2>
+            <button class="modal-close" data-close="donutModalOverlay" aria-label="Close">&times;</button>
+          </div>
+          <div class="modal-chart-wrap modal-donut-wrap">
+            <canvas id="donutModalChart"></canvas>
+          </div>
+        </div>
+        <div class="modal-side">
+          <div class="field" style="margin-bottom:18px;">
+            <label>Cumulative through year</label>
+            <select id="donutModalYearSelect"></select>
+          </div>
+          <div class="modal-stat-list" id="donutModalStats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Year Detail modal (12-month breakdown) -->
+    <div class="modal-overlay" id="yearDetailModalOverlay">
+      <div class="modal-box">
+        <div class="modal-main">
+          <div class="modal-header">
+            <h2>Year Breakdown</h2>
+            <button class="modal-close" data-close="yearDetailModalOverlay" aria-label="Close">&times;</button>
+          </div>
+          <div class="modal-chart-wrap" id="yearDetailTableWrap" style="overflow:auto;display:block;">
+            <table class="contracts" id="yearDetailTable" style="min-width:660px;">
+              <thead>
+                <tr><th>Month</th><th>Balance</th><th>Equity</th><th>Principal paid</th><th>Overpaid</th><th>Interest paid</th></tr>
+              </thead>
+              <tbody id="yearDetailTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-side">
+          <div class="field" style="margin-bottom:18px;">
+            <label>Year</label>
+            <select id="yearDetailYearSelect"></select>
+          </div>
+          <div class="modal-stat-list" id="yearDetailStats"></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:16px;">
+      <h2>Yearly Progress <span class="muted-tag">balance, equity and cumulative interest by year</span></h2>
+      <div style="max-height:280px;overflow:auto;" id="tableWrap">
+      <table class="contracts">
+        <thead>
+          <tr><th>Year</th><th>Calendar year</th><th>Balance</th><th>Equity</th><th>Interest paid (yr)</th><th>Overpaid (yr)</th><th>Rate</th></tr>
+        </thead>
+        <tbody id="yearTableBody"></tbody>
+      </table>
+      </div>
+      <div class="empty-note" id="tableEmpty">Enter your mortgage details in the panels below to see your year-by-year progress.</div>
+    </div>
+
+    <!-- Mortgage setup panels (moved to bottom) -->
+    <div class="panels-row setup-grid" id="setupSection">
+      <div class="panel" id="panel-details">
+        <div class="panel-head" data-toggle="panel-details">
+          <div class="panel-head-left"><h2>Mortgage Details</h2></div>
+          <button class="chevron-btn" type="button" aria-label="Collapse Mortgage Details">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+        <div class="panel-body">
+        <div class="field-grid" data-cols="2" style="margin-bottom:12px;">
+          <div class="field">
+            <label>Mortgage start month</label>
+            <select id="startMonth">
+              <option value="">Select month</option>
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+          <div class="field"><label>Mortgage start year</label><input type="number" id="startYear" placeholder="e.g. 2021" step="1"></div>
+        </div>
+        <div class="field-grid" data-cols="6">
+          <div class="field">
+            <label>Property value</label>
+            <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="propertyValue" placeholder="e.g. 320,000" data-money="1"></div>
+          </div>
+          <div class="field">
+            <label>Current balance</label>
+            <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="loanBalance" placeholder="e.g. 248,000" data-money="1"></div>
+          </div>
+          <div class="field"><label>Years remaining</label><input type="number" id="yearsRemaining" placeholder="e.g. 24" step="1" min="1"></div>
+          <div class="field">
+            <label>Current interest rate</label>
+            <div class="suffix-wrap"><input type="number" id="currentRate" placeholder="e.g. 4.75" step="0.01" min="0"><span class="suffix">%</span></div>
+          </div>
+          <div class="field"><label>Fixed rate ends (year)</label><input type="number" id="fixedEndYear" placeholder="e.g. 2028" step="1"></div>
+          <div class="field">
+            <label>Variable Rate</label>
+            <div class="suffix-wrap"><input type="number" id="variableRate" placeholder="e.g. 6.20" step="0.01" min="0"><span class="suffix">%</span></div>
+          </div>
+        </div>
+        <div class="banner neutral" id="paymentBanner">Fill in the fields above to see your monthly payment.</div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-overpay">
+        <div class="panel-head" data-toggle="panel-overpay">
+          <div class="panel-head-left"><h2>Overpayments</h2></div>
+          <button class="chevron-btn" type="button" aria-label="Collapse Overpayments">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+        <div class="panel-body">
+
+        <div class="field-grid" data-cols="2" style="margin-bottom:14px;">
+          <div class="field">
+            <label>Regular extra / month</label>
+            <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="regularOverpay" placeholder="e.g. 150" data-money="1"></div>
+          </div>
+          <div class="field">
+            <label>Annual overpayment cap</label>
+            <div class="suffix-wrap"><input type="number" id="overpayCap" placeholder="e.g. 10" step="1" min="0"><span class="suffix">%</span></div>
+          </div>
+        </div>
+
+        <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;">Annual bonus overpayment</label>
+        <div class="field-grid" data-cols="2" style="margin-top:8px;margin-bottom:16px;">
+          <div class="field">
+            <label>Bonus month</label>
+            <select id="bonusMonth">
+              <option value="">Select month</option>
+              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Bonus amount</label>
+            <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="bonusAmount" placeholder="e.g. 2,000" data-money="1"></div>
+          </div>
+        </div>
+
+        <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;">One-off lump sums</label>
+        <div class="overpay-list" id="lumpSumList" style="margin-top:8px;"></div>
+        <button class="add-link" id="addLumpSum">+ Add one-off lump sum</button>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-remortgage">
+        <div class="panel-head" data-toggle="panel-remortgage">
+          <div class="panel-head-left"><h2>Remortgage Plan</h2></div>
+          <div class="panel-head-right">
+            <label class="switch" onclick="event.stopPropagation()">
+              <input type="checkbox" id="remortgageEnabled">
+              <span class="track"></span>
+            </label>
+            <button class="chevron-btn" type="button" aria-label="Collapse Remortgage Plan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="panel-body">
+        <div id="remortgageFields" style="opacity:.4;pointer-events:none;">
+          <div class="remortgage-list" id="remortgageList"></div>
+          <button class="add-link" id="addRemortgage">+ Add remortgage</button>
+        </div>
+        <div class="banner warn" id="remortgageBanner" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="rightrail">
+    <div class="rail-block">
+      <h3>Loan-to-Value</h3>
+      <div class="bar-item">
+        <div class="lbl"><span>Current LTV</span><b id="ltvNow">--</b></div>
+        <div class="bar-track"><div class="bar-fill" id="ltvBarNow" style="width:0%;background:var(--teal);"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="lbl"><span>LTV in 5 years</span><b id="ltv5">--</b></div>
+        <div class="bar-track"><div class="bar-fill" id="ltvBar5" style="width:0%;background:var(--gold);"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="lbl"><span>LTV at remortgage</span><b id="ltvRemo">--</b></div>
+        <div class="bar-track"><div class="bar-fill" id="ltvBarRemo" style="width:0%;background:var(--orange);"></div></div>
+      </div>
+    </div>
+
+    <div class="rail-block">
+      <h3>Term Impact</h3>
+      <div class="cycle-grid">
+        <div class="cycle-cell" style="border-color:var(--teal);">
+          <div class="num" id="baselineYears">--<span>yrs</span></div>
+          <div class="lbl">Baseline term</div>
+        </div>
+        <div class="cycle-cell" style="border-color:var(--orange);">
+          <div class="num" id="newYears">--<span>yrs</span></div>
+          <div class="lbl">With overpayments</div>
+        </div>
+        <div class="cycle-cell" style="border-color:var(--gold);">
+          <div class="num" id="monthsSaved">--<span>mo</span></div>
+          <div class="lbl">Time saved</div>
+        </div>
+        <div class="cycle-cell" style="border-color:var(--red);">
+          <div class="num" id="interestSaved">--</div>
+          <div class="lbl">Interest saved</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rail-block">
+      <h3>This Year at a Glance</h3>
+      <div class="bar-item">
+        <div class="lbl"><span>Principal repaid</span><b id="yr1Principal">--</b></div>
+        <div class="bar-track"><div class="bar-fill" id="yr1PrincipalBar" style="width:0%;background:var(--teal);"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="lbl"><span>Interest paid</span><b id="yr1Interest">--</b></div>
+        <div class="bar-track"><div class="bar-fill" id="yr1InterestBar" style="width:0%;background:var(--orange);"></div></div>
+      </div>
+      <div class="bar-item">
+        <div class="lbl"><span>Overpaid</span><b id="yr1Overpay">--</b></div>
+        <div class="bar-track"><div class="bar-fill" id="yr1OverpayBar" style="width:0%;background:var(--gold);"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt = n => '£' + Math.round(n).toLocaleString('en-GB');
+const pct = n => (Math.round(n*10)/10) + '%';
+
+// ---- Comma-formatted money inputs ----
+function formatMoneyValue(raw){
+  const digits = raw.replace(/[^0-9]/g,'');
+  if(!digits) return '';
+  return Number(digits).toLocaleString('en-GB');
+}
+function attachMoneyFormatting(){
+  document.querySelectorAll('input[data-money="1"]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const cursorFromEnd = inp.value.length - inp.selectionStart;
+      inp.value = formatMoneyValue(inp.value);
+      const pos = Math.max(0, inp.value.length - cursorFromEnd);
+      inp.setSelectionRange(pos, pos);
+      recalc();
+    });
+  });
+}
+function getNum(id){
+  const el = document.getElementById(id);
+  if(!el) return NaN;
+  const raw = el.value.replace(/,/g,'').trim();
+  if(raw === '') return NaN;
+  const n = parseFloat(raw);
+  return isNaN(n) ? NaN : n;
+}
+function hasVal(id){ return !isNaN(getNum(id)); }
+
+let lumpSums = [];
+
+function renderLumpSumRows(){
+  const list = document.getElementById('lumpSumList');
+  list.innerHTML = '';
+  if(lumpSums.length === 0){
+    const p = document.createElement('div');
+    p.style.cssText = 'font-size:12.5px;color:var(--muted);padding:4px 2px;';
+    p.textContent = 'No one-off lump sums added yet.';
+    list.appendChild(p);
+  }
+  lumpSums.forEach((ls, i) => {
+    const row = document.createElement('div');
+    row.className = 'overpay-row';
+    row.innerHTML = `
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap;">Month</span>
+      <input type="number" value="${ls.month ?? ''}" placeholder="e.g. 6" style="width:60px;" data-idx="${i}" data-field="month">
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap;">Amount £</span>
+      <input type="text" inputmode="numeric" value="${ls.amount ? ls.amount.toLocaleString('en-GB') : ''}" placeholder="e.g. 3,000" style="width:100px;" data-idx="${i}" data-field="amount" data-money="1">
+      <button class="rm" data-idx="${i}" title="Remove">&times;</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input[data-field="month"]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = +e.target.dataset.idx;
+      lumpSums[idx].month = e.target.value === '' ? null : (+e.target.value || 0);
+      recalc();
+    });
+  });
+  list.querySelectorAll('input[data-field="amount"]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const cursorFromEnd = e.target.value.length - e.target.selectionStart;
+      e.target.value = formatMoneyValue(e.target.value);
+      const pos = Math.max(0, e.target.value.length - cursorFromEnd);
+      e.target.setSelectionRange(pos, pos);
+      const idx = +e.target.dataset.idx;
+      lumpSums[idx].amount = +e.target.value.replace(/,/g,'') || 0;
+      recalc();
+    });
+  });
+  list.querySelectorAll('.rm').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = +e.target.dataset.idx;
+      lumpSums.splice(idx, 1);
+      renderLumpSumRows();
+      recalc();
+    });
+  });
+}
+
+document.getElementById('addLumpSum').addEventListener('click', () => {
+  lumpSums.push({month: null, amount: 0});
+  renderLumpSumRows();
+  recalc();
+});
+
+// ---- Remortgages (multiple, year-based) ----
+let remortgages = [];
+
+function renderRemortgageRows(){
+  const list = document.getElementById('remortgageList');
+  list.innerHTML = '';
+  if(remortgages.length === 0){
+    const p = document.createElement('div');
+    p.style.cssText = 'font-size:12.5px;color:var(--muted);padding:4px 2px;';
+    p.textContent = 'No remortgages added yet.';
+    list.appendChild(p);
+  }
+  remortgages.forEach((rm, i) => {
+    const entry = document.createElement('div');
+    entry.className = 'remortgage-entry';
+    entry.innerHTML = `
+      <div class="remortgage-entry-head">
+        <b>Remortgage ${i+1}</b>
+        <button class="rm" data-idx="${i}" title="Remove">&times;</button>
+      </div>
+      <div class="field-grid">
+        <div class="field"><label>Year</label><input type="number" value="${rm.year ?? ''}" placeholder="e.g. 2028" data-idx="${i}" data-field="year"></div>
+        <div class="field">
+          <label>New rate</label>
+          <div class="suffix-wrap"><input type="number" value="${rm.rate ?? ''}" placeholder="e.g. 4.40" step="0.01" min="0" data-idx="${i}" data-field="rate"><span class="suffix">%</span></div>
+        </div>
+        <div class="field"><label>New term (years)</label><input type="number" value="${rm.term ?? ''}" placeholder="e.g. 22" step="1" min="1" data-idx="${i}" data-field="term"></div>
+        <div class="field">
+          <label>Release / borrow extra</label>
+          <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" value="${rm.release ? rm.release.toLocaleString('en-GB') : ''}" placeholder="0" data-idx="${i}" data-field="release" data-money="1"></div>
+        </div>
+        <div class="field">
+          <label>Product/arrangement fee</label>
+          <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" value="${rm.fee ? rm.fee.toLocaleString('en-GB') : ''}" placeholder="e.g. 999" data-idx="${i}" data-field="fee" data-money="1"></div>
+        </div>
+      </div>
+    `;
+    list.appendChild(entry);
+  });
+
+  list.querySelectorAll('input[data-field="year"], input[data-field="rate"], input[data-field="term"]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const idx = +e.target.dataset.idx;
+      const field = e.target.dataset.field;
+      remortgages[idx][field] = e.target.value === '' ? null : (+e.target.value);
+      recalc();
+    });
+  });
+  list.querySelectorAll('input[data-field="release"], input[data-field="fee"]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const cursorFromEnd = e.target.value.length - e.target.selectionStart;
+      e.target.value = formatMoneyValue(e.target.value);
+      const pos = Math.max(0, e.target.value.length - cursorFromEnd);
+      e.target.setSelectionRange(pos, pos);
+      const idx = +e.target.dataset.idx;
+      const field = e.target.dataset.field;
+      remortgages[idx][field] = +e.target.value.replace(/,/g,'') || 0;
+      recalc();
+    });
+  });
+  list.querySelectorAll('.remortgage-entry-head .rm').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = +e.target.dataset.idx;
+      remortgages.splice(idx, 1);
+      renderRemortgageRows();
+      recalc();
+    });
+  });
+}
+
+document.getElementById('addRemortgage').addEventListener('click', () => {
+  remortgages.push({year: null, rate: null, term: null, release: 0, fee: 0});
+  renderRemortgageRows();
+  recalc();
+});
+
+function monthlyPayment(balance, annualRatePct, months){
+  const r = annualRatePct/100/12;
+  if(months <= 0) return balance;
+  if(r === 0) return balance/months;
+  return balance * r / (1 - Math.pow(1+r, -months));
+}
+
+// Groups simulation rows by the real calendar year they fall in (not rolling 12-month blocks).
+// Returns an array sorted ascending: [{yearIndex, calYear, rows}, ...]
+function groupRowsByCalendarYear(rows){
+  const now = new Date();
+  const startYear = now.getFullYear();
+  const startMonthIdx = now.getMonth();
+  const map = new Map();
+  rows.forEach(r => {
+    const d = new Date(startYear, startMonthIdx + (r.month - 1), 1);
+    const y = d.getFullYear();
+    if(!map.has(y)) map.set(y, []);
+    map.get(y).push(r);
+  });
+  return [...map.keys()].sort((a,b)=>a-b).map((y,i) => ({yearIndex:i+1, calYear:y, rows:map.get(y)}));
+}
+
+// Back-fills the already-elapsed months of the current calendar year (Jan by default, or the
+// mortgage start month/year if provided) so "Year 1" shows the full year, not just from today.
+// Estimated at the current rate (we don't have historical rate data), overpayments assumed £0
+// since they only start from today. Mutates the first group of each groups array in place.
+function applyHistoryBackfill(withOPGroups, baselineGroups, startBalance, currentRate, totalMonths){
+  if(!withOPGroups.length || !baselineGroups.length) return;
+
+  const now = new Date();
+  const todayMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const startMonthVal = document.getElementById('startMonth').value;
+  const startYearVal = getNum('startYear');
+  let anchorDate;
+  if(startMonthVal && !isNaN(startYearVal)){
+    anchorDate = new Date(startYearVal, +startMonthVal - 1, 1);
+  } else {
+    anchorDate = new Date(now.getFullYear(), 0, 1); // January of the current real year
+  }
+  const janThisYear = new Date(now.getFullYear(), 0, 1);
+  const effectiveStart = anchorDate > janThisYear ? anchorDate : janThisYear;
+
+  const backfillMonths = (todayMonthStart.getFullYear()-effectiveStart.getFullYear())*12 + (todayMonthStart.getMonth()-effectiveStart.getMonth());
+  if(backfillMonths <= 0) return;
+
+  const r = currentRate/100/12;
+  const payment0 = monthlyPayment(startBalance, currentRate, totalMonths);
+
+  const pastRowsReversed = [];
+  let runningEndBalance = startBalance;
+  for(let i=0; i<backfillMonths; i++){
+    const balPrev = (runningEndBalance + payment0) / (1+r);
+    const interestThisMonth = balPrev * r;
+    const principalThisMonth = payment0 - interestThisMonth;
+    const rowDate = new Date(todayMonthStart.getFullYear(), todayMonthStart.getMonth() - (i+1), 1);
+    pastRowsReversed.push({
+      balance: runningEndBalance, interest: interestThisMonth, principal: principalThisMonth,
+      overpay: 0, rate: currentRate, isHistory: true, dateOverride: rowDate
+    });
+    runningEndBalance = balPrev;
+  }
+  const pastRowsChronological = pastRowsReversed.reverse();
+
+  withOPGroups[0].rows = [...pastRowsChronological, ...withOPGroups[0].rows];
+  withOPGroups[0].historyStartBalance = runningEndBalance;
+  baselineGroups[0].rows = [...pastRowsChronological, ...baselineGroups[0].rows];
+  baselineGroups[0].historyStartBalance = runningEndBalance;
+}
+
+function hasRequiredInputs(){
+  return hasVal('propertyValue') && hasVal('loanBalance') && hasVal('yearsRemaining') && hasVal('currentRate');
+}
+
+// Simulates month by month. If withOverpayments=false, ignores lump sums, regular & bonus overpay.
+function simulate(withOverpayments){
+  const propertyValue = getNum('propertyValue') || 0;
+  const startBalance = getNum('loanBalance') || 0;
+  const yearsRemaining = getNum('yearsRemaining') || 0;
+  const currentRate = getNum('currentRate') || 0;
+  const variableRate = hasVal('variableRate') ? getNum('variableRate') : currentRate;
+  const fixedEndYear = getNum('fixedEndYear');
+  const regularOverpay = withOverpayments ? (getNum('regularOverpay') || 0) : 0;
+  const overpayCapPct = hasVal('overpayCap') ? getNum('overpayCap') : 100;
+
+  const bonusMonthSel = document.getElementById('bonusMonth').value;
+  const bonusMonth = withOverpayments && bonusMonthSel ? +bonusMonthSel : null;
+  const bonusAmount = withOverpayments ? (getNum('bonusAmount') || 0) : 0;
+
+  const remortgageEnabled = document.getElementById('remortgageEnabled').checked;
+
+  // convert "fixed rate ends in year X" / remortgage "year X" to months-from-now
+  const now = new Date();
+  function yearToMonthsFromNow(year){
+    let months = Math.round((year - now.getFullYear())*12 - now.getMonth());
+    if(months < 0) months = 0;
+    return months;
+  }
+
+  let fixedMonths;
+  if(!isNaN(fixedEndYear)){
+    fixedMonths = yearToMonthsFromNow(fixedEndYear);
+  } else {
+    fixedMonths = Math.round(yearsRemaining*12); // never leaves fixed rate if not specified
+  }
+
+  // Build a sorted list of valid remortgage events (each with year, rate, term all set)
+  const remoEvents = remortgageEnabled ? remortgages
+    .filter(r => r.year != null && r.rate != null && r.term != null && !isNaN(r.year) && !isNaN(r.rate) && !isNaN(r.term))
+    .map(r => ({
+      month: yearToMonthsFromNow(r.year),
+      rate: r.rate,
+      term: r.term,
+      release: r.release || 0,
+      fee: r.fee || 0,
+      year: r.year
+    }))
+    .sort((a,b) => a.month - b.month) : [];
+
+  let balance = startBalance;
+  let totalMonths = Math.round(yearsRemaining*12);
+  let rate = currentRate;
+  let payment = monthlyPayment(balance, rate, totalMonths);
+
+  let monthsLeftOnPlan = totalMonths;
+  const lumps = withOverpayments ? lumpSums.filter(l => l.month) : [];
+  const lumpMap = {};
+  lumps.forEach(l => { lumpMap[l.month] = (lumpMap[l.month]||0) + (l.amount||0); });
+
+  const rows = [];
+  let cumInterest = 0;
+  let capRemainingThisYear = balance * overpayCapPct/100;
+  let m = 0;
+  const maxMonths = 600;
+  let hasRemortgaged = false;
+  let nextRemoIdx = 0;
+
+  while(balance > 1 && m < maxMonths){
+    m++;
+    const calendarMonth = ((now.getMonth() + m - 1) % 12) + 1; // 1-12
+
+    // Fixed -> variable rate transition (skipped if a remortgage already took over by this point)
+    if(fixedMonths !== undefined && m === fixedMonths+1 && !hasRemortgaged){
+      rate = variableRate;
+      monthsLeftOnPlan = totalMonths - (m-1);
+      if(monthsLeftOnPlan > 0) payment = monthlyPayment(balance, rate, monthsLeftOnPlan);
+    }
+
+    // Apply any remortgage events scheduled for this month
+    while(nextRemoIdx < remoEvents.length && m === remoEvents[nextRemoIdx].month + 1){
+      const ev = remoEvents[nextRemoIdx];
+      balance += ev.release;
+      rate = ev.rate;
+      monthsLeftOnPlan = Math.round(ev.term*12);
+      payment = monthlyPayment(balance, rate, monthsLeftOnPlan);
+      hasRemortgaged = true;
+      nextRemoIdx++;
+    }
+
+    if((m-1) % 12 === 0){
+      capRemainingThisYear = balance * overpayCapPct/100;
+    }
+
+    const r = rate/100/12;
+    const interest = balance * r;
+    let principalPortion = payment - interest;
+    if(principalPortion > balance) principalPortion = balance;
+    if(principalPortion < 0) principalPortion = 0;
+    balance -= principalPortion;
+    cumInterest += interest;
+
+    let overpayThisMonth = 0;
+    if(withOverpayments){
+      let extra = regularOverpay;
+      if(lumpMap[m]) extra += lumpMap[m];
+      if(bonusMonth && calendarMonth === bonusMonth) extra += bonusAmount;
+      extra = Math.min(extra, Math.max(capRemainingThisYear,0), balance);
+      if(extra > 0){
+        balance -= extra;
+        capRemainingThisYear -= extra;
+        overpayThisMonth = extra;
+      }
+    }
+    if(balance < 0) balance = 0;
+
+    rows.push({ month: m, balance, interest, principal: principalPortion, overpay: overpayThisMonth, rate });
+    if(balance <= 0) break;
+  }
+
+  return {rows, cumInterest, propertyValue, startBalance};
+}
+
+let balanceChart, donutChart, balanceModalChart, donutModalChart;
+let lastSim = null;
+
+function setEmptyState(isEmpty){
+  document.getElementById('chartEmpty').style.display = isEmpty ? 'block' : 'none';
+  document.getElementById('chartWrap').style.display = isEmpty ? 'none' : 'block';
+  document.getElementById('donutEmpty').style.display = isEmpty ? 'block' : 'none';
+  document.getElementById('donutWrap').style.display = isEmpty ? 'none' : 'flex';
+  document.getElementById('tableEmpty').style.display = isEmpty ? 'block' : 'none';
+  document.getElementById('tableWrap').style.display = isEmpty ? 'none' : 'block';
+  document.getElementById('donutYearSelect').style.display = isEmpty ? 'none' : 'inline-block';
+  document.querySelector('.donut-filter-row label').style.display = isEmpty ? 'none' : 'inline';
+}
+
+function recalc(){
+  if(!hasRequiredInputs()){
+    setEmptyState(true);
+    document.getElementById('statBalance').textContent = '--';
+    document.getElementById('statBalanceSub').textContent = 'of original loan';
+    document.getElementById('statEquity').textContent = '--';
+    document.getElementById('statEquitySub').textContent = '-- of property value';
+    document.getElementById('statPayoff').textContent = '--';
+    document.getElementById('statPayoffSub').textContent = 'on current plan';
+    document.getElementById('statSaved').textContent = '--';
+    document.getElementById('statSavedSub').textContent = 'vs. no overpayments';
+    document.getElementById('paymentBanner').textContent = 'Fill in the fields above to see your monthly payment.';
+    document.getElementById('paymentBanner').className = 'banner neutral';
+    ['ltvNow','ltv5','ltvRemo'].forEach(id => document.getElementById(id).textContent = '--');
+    ['ltvBarNow','ltvBar5','ltvBarRemo'].forEach(id => document.getElementById(id).style.width = '0%');
+    document.getElementById('baselineYears').innerHTML = '--<span>yrs</span>';
+    document.getElementById('newYears').innerHTML = '--<span>yrs</span>';
+    document.getElementById('monthsSaved').innerHTML = '--<span>mo</span>';
+    document.getElementById('interestSaved').textContent = '--';
+    ['yr1Principal','yr1Interest','yr1Overpay','legPrincipal','legInterest','legOverpay'].forEach(id => document.getElementById(id).textContent = '--');
+    ['yr1PrincipalBar','yr1InterestBar','yr1OverpayBar'].forEach(id => document.getElementById(id).style.width = '0%');
+    if(balanceChart){ balanceChart.destroy(); balanceChart = null; }
+    if(donutChart){ donutChart.destroy(); donutChart = null; }
+    lastSim = null;
+    document.getElementById('donutYearSelect').innerHTML = '';
+    return;
+  }
+  setEmptyState(false);
+
+  const withOP = simulate(true);
+  const baseline = simulate(false);
+  const withOPGroups = groupRowsByCalendarYear(withOP.rows);
+  const baselineGroups = groupRowsByCalendarYear(baseline.rows);
+  applyHistoryBackfill(withOPGroups, baselineGroups, withOP.startBalance, getNum('currentRate'), Math.round(getNum('yearsRemaining')*12));
+
+  const propertyValue = withOP.propertyValue;
+  const startBalance = withOP.startBalance;
+  const currentEquity = propertyValue - startBalance;
+
+  document.getElementById('statBalance').textContent = fmt(startBalance);
+  document.getElementById('statBalanceSub').textContent = propertyValue ? `of ${fmt(propertyValue)} property` : 'of original loan';
+  document.getElementById('statEquity').textContent = fmt(currentEquity);
+  document.getElementById('statEquitySub').textContent = propertyValue ? pct(100*currentEquity/propertyValue) + ' of property value' : '--';
+
+  const payoffMonths = withOP.rows.length;
+  const payoffDate = new Date();
+  payoffDate.setMonth(payoffDate.getMonth() + payoffMonths);
+  document.getElementById('statPayoff').textContent = payoffDate.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
+  document.getElementById('statPayoffSub').textContent = `${Math.floor(payoffMonths/12)}y ${payoffMonths%12}m from now`;
+
+  const monthsSaved = baseline.rows.length - withOP.rows.length;
+  const interestSaved = baseline.cumInterest - withOP.cumInterest;
+  document.getElementById('statSaved').textContent = (monthsSaved>0? Math.floor(monthsSaved/12)+'y '+(monthsSaved%12)+'m' : '0');
+  document.getElementById('statSavedSub').textContent = interestSaved>0 ? fmt(interestSaved) + ' interest saved' : 'vs. no overpayments';
+
+  document.getElementById('baselineYears').innerHTML = (Math.round(baseline.rows.length/12*10)/10) + '<span>yrs</span>';
+  document.getElementById('newYears').innerHTML = (Math.round(withOP.rows.length/12*10)/10) + '<span>yrs</span>';
+  document.getElementById('monthsSaved').innerHTML = monthsSaved + '<span>mo</span>';
+  document.getElementById('interestSaved').innerHTML = fmt(interestSaved);
+
+  const ltvNow = propertyValue ? 100*startBalance/propertyValue : 0;
+  document.getElementById('ltvNow').textContent = pct(ltvNow);
+  document.getElementById('ltvBarNow').style.width = Math.min(ltvNow,100)+'%';
+
+  const idx5y = Math.min(60, withOP.rows.length-1);
+  const bal5 = withOP.rows[idx5y] ? withOP.rows[idx5y].balance : 0;
+  const ltv5 = propertyValue ? 100*bal5/propertyValue : 0;
+  document.getElementById('ltv5').textContent = pct(ltv5);
+  document.getElementById('ltvBar5').style.width = Math.min(ltv5,100)+'%';
+
+  const remortgageEnabled = document.getElementById('remortgageEnabled').checked;
+  const validRemos = remortgageEnabled ? remortgages
+    .filter(r => r.year != null && r.rate != null && r.term != null && !isNaN(r.year) && !isNaN(r.rate) && !isNaN(r.term))
+    .sort((a,b) => a.year - b.year) : [];
+  const nextRemo = validRemos[0] || null;
+
+  let ltvRemo = ltvNow;
+  if(nextRemo){
+    const monthsUntil = Math.round((nextRemo.year - new Date().getFullYear())*12 - new Date().getMonth());
+    const idxR = Math.min(Math.max(monthsUntil,0), withOP.rows.length-1);
+    const balR = withOP.rows[idxR] ? withOP.rows[idxR].balance : 0;
+    ltvRemo = propertyValue ? 100*(balR+(nextRemo.release||0))/propertyValue : 0;
+  }
+  document.getElementById('ltvRemo').textContent = nextRemo ? pct(ltvRemo) : '—';
+  document.getElementById('ltvBarRemo').style.width = nextRemo ? Math.min(ltvRemo,100)+'%' : '0%';
+
+  const yr1 = withOPGroups[0] ? withOPGroups[0].rows : [];
+  const yr1Principal = yr1.reduce((s,r)=>s+r.principal,0);
+  const yr1Interest = yr1.reduce((s,r)=>s+r.interest,0);
+  const yr1Overpay = yr1.reduce((s,r)=>s+r.overpay,0);
+  const yr1Total = yr1Principal+yr1Interest+yr1Overpay || 1;
+  document.getElementById('yr1Principal').textContent = fmt(yr1Principal);
+  document.getElementById('yr1Interest').textContent = fmt(yr1Interest);
+  document.getElementById('yr1Overpay').textContent = fmt(yr1Overpay);
+  document.getElementById('yr1PrincipalBar').style.width = (100*yr1Principal/yr1Total)+'%';
+  document.getElementById('yr1InterestBar').style.width = (100*yr1Interest/yr1Total)+'%';
+  document.getElementById('yr1OverpayBar').style.width = (100*yr1Overpay/yr1Total)+'%';
+
+  const rate = getNum('currentRate');
+  const bal0 = getNum('loanBalance');
+  const yrs = getNum('yearsRemaining');
+  const pmt = monthlyPayment(bal0, rate, yrs*12);
+  const fixedEndYearVal = getNum('fixedEndYear');
+  const variableRateVal = getNum('variableRate');
+  document.getElementById('paymentBanner').className = 'banner';
+  let bannerHtml = `Monthly payment: <b>${fmt(pmt)}</b> at ${rate}% APR.`;
+  if(!isNaN(fixedEndYearVal)){
+    if(!isNaN(variableRateVal)){
+      bannerHtml += ` Your rate switches to <b>${variableRateVal}%</b> from <b>${Math.round(fixedEndYearVal)}</b>, when payments recalculate.`;
+    } else {
+      bannerHtml += ` Add a variable rate above to see what happens after your fixed period ends in <b>${Math.round(fixedEndYearVal)}</b>.`;
+    }
+  }
+  const startMonthVal = document.getElementById('startMonth').value;
+  const startYearVal = getNum('startYear');
+  if(startMonthVal && !isNaN(startYearVal)){
+    const startDate = new Date(startYearVal, +startMonthVal - 1, 1);
+    const now = new Date();
+    let elapsedMonths = (now.getFullYear()-startDate.getFullYear())*12 + (now.getMonth()-startDate.getMonth());
+    if(elapsedMonths < 0) elapsedMonths = 0;
+    const elapsedYears = Math.floor(elapsedMonths/12);
+    const elapsedRemMonths = elapsedMonths%12;
+    const originalTermYears = Math.round((elapsedMonths/12 + yrs)*10)/10;
+    bannerHtml += ` You're <b>${elapsedYears}y ${elapsedRemMonths}m</b> into this mortgage, on an original term of roughly <b>${originalTermYears} years</b>.`;
+  }
+  document.getElementById('paymentBanner').innerHTML = bannerHtml;
+
+  const remoBanner = document.getElementById('remortgageBanner');
+  if(validRemos.length){
+    remoBanner.style.display = 'block';
+    let runningBalance = startBalance;
+    const lines = validRemos.map((rm, i) => {
+      const monthsUntil = Math.round((rm.year - new Date().getFullYear())*12 - new Date().getMonth());
+      const idxR = Math.min(Math.max(monthsUntil,0), withOP.rows.length-1);
+      const balAtRemo = withOP.rows[idxR] ? withOP.rows[idxR].balance : runningBalance;
+      const newBal = balAtRemo + (rm.release||0);
+      const newPmt = monthlyPayment(newBal, rm.rate, rm.term*12);
+      return `<div style="${i>0?'margin-top:8px;':''}"><b>Remortgage ${i+1} (${Math.round(rm.year)}):</b> balance will be ~<b>${fmt(balAtRemo)}</b>. Moving to <b>${rm.rate}%</b> over <b>${rm.term} years</b>${rm.release>0?` and releasing <b>${fmt(rm.release)}</b>`:''} gives a new balance of <b>${fmt(newBal)}</b> and a new monthly payment of <b>${fmt(newPmt)}</b>${rm.fee>0?` (plus a ${fmt(rm.fee)} fee)`:''}.</div>`;
+    });
+    remoBanner.innerHTML = lines.join('');
+  } else {
+    remoBanner.style.display = 'none';
+  }
+
+  const tbody = document.getElementById('yearTableBody');
+  tbody.innerHTML = '';
+
+  withOPGroups.forEach(g => {
+    const slice = g.rows;
+    const endBal = slice[slice.length-1].balance;
+    const yrInterest = slice.reduce((s,r)=>s+r.interest,0);
+    const yrOverpay = slice.reduce((s,r)=>s+r.overpay,0);
+    const equity = propertyValue - endBal;
+    const rateAtEnd = slice[slice.length-1].rate;
+    const tr = document.createElement('tr');
+    tr.className = 'year-row';
+    tr.dataset.yearIndex = g.yearIndex;
+    tr.innerHTML = `<td>Year ${g.yearIndex}</td><td>${g.calYear}</td><td>${fmt(endBal)}</td><td>${fmt(equity)}</td><td>${fmt(yrInterest)}</td><td>${fmt(yrOverpay)}</td><td>${(Math.round(rateAtEnd*100)/100)}%</td>`;
+    tr.addEventListener('click', () => {
+      openModal('yearDetailModalOverlay');
+      document.getElementById('yearDetailYearSelect').value = String(g.yearIndex);
+      renderYearDetailModal();
+    });
+    tbody.appendChild(tr);
+  });
+
+  // Store latest simulation state for the modals & donut card filter
+  lastSim = { withOP, baseline, propertyValue, withOPGroups, baselineGroups };
+  populateYearSelects();
+  updateDonutCardForSelectedYear();
+
+  updateCharts(withOP, baseline, propertyValue);
+
+  saveState();
+}
+
+function updateCharts(withOP, baseline, propertyValue){
+  const years = Math.ceil(Math.max(withOP.rows.length, baseline.rows.length)/12);
+  const labels = [];
+  const balWith = [];
+  const balBase = [];
+  const equityWith = [];
+  for(let y=0;y<=years;y++){
+    labels.push('Yr ' + y);
+    const idx = Math.min(y*12, withOP.rows.length-1);
+    const idxB = Math.min(y*12, baseline.rows.length-1);
+    const bw = idx>=0 ? (withOP.rows[idx] ? withOP.rows[idx].balance : 0) : withOP.startBalance;
+    const bb = idxB>=0 ? (baseline.rows[idxB] ? baseline.rows[idxB].balance : 0) : baseline.startBalance;
+    balWith.push(y===0 ? withOP.startBalance : bw);
+    balBase.push(y===0 ? baseline.startBalance : bb);
+    equityWith.push(propertyValue - (y===0?withOP.startBalance:bw));
+  }
+
+  const ctx = document.getElementById('balanceChart');
+  const data = {
+    labels,
+    datasets:[
+      {label:'Balance (with overpayments)', data: balWith, borderColor:'#0e8f6f', backgroundColor:'rgba(14,143,111,0.08)', fill:true, tension:.3, pointRadius:0, borderWidth:2.5},
+      {label:'Balance (baseline, no overpayments)', data: balBase, borderColor:'#e8823a', backgroundColor:'transparent', borderDash:[5,4], fill:false, tension:.3, pointRadius:0, borderWidth:2},
+      {label:'Equity', data: equityWith, borderColor:'#e0b23a', backgroundColor:'transparent', tension:.3, pointRadius:0, borderWidth:2}
+    ]
+  };
+  if(balanceChart){
+    balanceChart.data = data;
+    balanceChart.update();
+  } else {
+    balanceChart = new Chart(ctx, {
+      type:'line',
+      data,
+      options:{
+        responsive:true,
+        interaction:{mode:'index', intersect:false},
+        plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}, usePointStyle:true}}},
+        scales:{
+          y:{ticks:{callback:v=>'£'+(v/1000)+'k'}, grid:{color:'#eef1f0'}},
+          x:{grid:{display:false}}
+        }
+      }
+    });
+  }
+
+
+}
+
+// ---- Year selects (donut card filter + both modals) ----
+function populateYearSelects(){
+  const selects = [
+    document.getElementById('donutYearSelect'),
+    document.getElementById('balanceModalYearSelect'),
+    document.getElementById('donutModalYearSelect'),
+    document.getElementById('yearDetailYearSelect')
+  ];
+  if(!lastSim){ selects.forEach(el => el.innerHTML = ''); return; }
+  const groups = lastSim.withOPGroups;
+  selects.forEach(el => {
+    const prevValue = el.value;
+    el.innerHTML = groups.map(g => `<option value="${g.yearIndex}">Year ${g.yearIndex} (${g.calYear})</option>`).join('');
+    if(prevValue && groups.some(g => String(g.yearIndex) === prevValue)){
+      el.value = prevValue;
+    } else {
+      el.value = groups.length ? '1' : '';
+    }
+  });
+}
+
+function getGroupByIndex(groups, yearIndex){
+  return groups.find(g => g.yearIndex === yearIndex) || null;
+}
+
+// ---- Donut card (on-dashboard, per-year breakdown, not cumulative) ----
+function updateDonutCardForSelectedYear(){
+  if(!lastSim) return;
+  const sel = document.getElementById('donutYearSelect');
+  const yearIndex = parseInt(sel.value || '1', 10);
+  const group = getGroupByIndex(lastSim.withOPGroups, yearIndex) || lastSim.withOPGroups[0];
+  if(!group) return;
+
+  const rows = group.rows;
+  const p = rows.reduce((s,r)=>s+r.principal,0);
+  const i = rows.reduce((s,r)=>s+r.interest,0);
+  const o = rows.reduce((s,r)=>s+r.overpay,0);
+
+  const dctx = document.getElementById('donutChart');
+  const ddata = {
+    labels:['Principal','Interest','Overpayments'],
+    datasets:[{data:[p,i,o], backgroundColor:['#0e8f6f','#e8823a','#e0b23a'], borderWidth:0}]
+  };
+  if(donutChart){
+    donutChart.data = ddata;
+    donutChart.update();
+  } else {
+    donutChart = new Chart(dctx, {
+      type:'doughnut',
+      data: ddata,
+      options:{cutout:'68%', maintainAspectRatio:true, aspectRatio:1, plugins:{legend:{display:false}, tooltip:{callbacks:{label: c => c.label+': £'+Math.round(c.raw).toLocaleString('en-GB')}}}}
+    });
+  }
+  document.getElementById('legPrincipal').textContent = fmt(p);
+  document.getElementById('legInterest').textContent = fmt(i);
+  document.getElementById('legOverpay').textContent = fmt(o);
+}
+
+document.getElementById('donutYearSelect').addEventListener('change', updateDonutCardForSelectedYear);
+
+// ---- Modal open/close plumbing ----
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.querySelectorAll('.modal-close').forEach(btn => {
+  btn.addEventListener('click', () => closeModal(btn.dataset.close));
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if(e.target === overlay) closeModal(overlay.id); });
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.modal-overlay.open').forEach(o => closeModal(o.id));
+  }
+});
+
+document.getElementById('balancePanel').addEventListener('click', () => {
+  if(!lastSim) return;
+  openModal('balanceModalOverlay');
+  renderBalanceModal();
+});
+document.getElementById('donutPanel').addEventListener('click', () => {
+  if(!lastSim) return;
+  openModal('donutModalOverlay');
+  renderDonutModal();
+});
+document.getElementById('balanceModalYearSelect').addEventListener('change', renderBalanceModal);
+document.getElementById('donutModalYearSelect').addEventListener('change', renderDonutModal);
+
+function statBlock(label, value, sub, colorClass){
+  return `<div class="modal-stat"><div class="m-label">${label}</div><div class="m-value${colorClass?' '+colorClass:''}">${value}</div>${sub?`<div class="m-sub">${sub}</div>`:''}</div>`;
+}
+
+// ---- Balance & Equity modal ----
+function renderBalanceModal(){
+  if(!lastSim) return;
+  const sel = document.getElementById('balanceModalYearSelect');
+  const yearIndex = parseInt(sel.value || '1', 10);
+  const { withOP, baseline, propertyValue, withOPGroups, baselineGroups } = lastSim;
+
+  const years = Math.ceil(Math.max(withOP.rows.length, baseline.rows.length)/12);
+  const labels = [];
+  const balWith = [];
+  const balBase = [];
+  const equityWith = [];
+  for(let y=0;y<=years;y++){
+    labels.push('Yr ' + y);
+    const idx = Math.min(y*12, withOP.rows.length-1);
+    const idxB = Math.min(y*12, baseline.rows.length-1);
+    const bw = idx>=0 ? (withOP.rows[idx] ? withOP.rows[idx].balance : 0) : withOP.startBalance;
+    const bb = idxB>=0 ? (baseline.rows[idxB] ? baseline.rows[idxB].balance : 0) : baseline.startBalance;
+    balWith.push(y===0 ? withOP.startBalance : bw);
+    balBase.push(y===0 ? baseline.startBalance : bb);
+    equityWith.push(propertyValue - (y===0?withOP.startBalance:bw));
+  }
+  const data = {
+    labels,
+    datasets:[
+      {label:'Balance (with overpayments)', data: balWith, borderColor:'#0e8f6f', backgroundColor:'rgba(14,143,111,0.08)', fill:true, tension:.3, pointRadius:0, borderWidth:2.5},
+      {label:'Balance (baseline, no overpayments)', data: balBase, borderColor:'#e8823a', backgroundColor:'transparent', borderDash:[5,4], fill:false, tension:.3, pointRadius:0, borderWidth:2},
+      {label:'Equity', data: equityWith, borderColor:'#e0b23a', backgroundColor:'transparent', tension:.3, pointRadius:0, borderWidth:2}
+    ]
+  };
+  const ctx = document.getElementById('balanceModalChart');
+  if(balanceModalChart){
+    balanceModalChart.data = data;
+    balanceModalChart.update();
+  } else {
+    balanceModalChart = new Chart(ctx, {
+      type:'line',
+      data,
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index', intersect:false},
+        plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}, usePointStyle:true}}},
+        scales:{
+          y:{ticks:{callback:v=>'£'+(v/1000)+'k'}, grid:{color:'#eef1f0'}},
+          x:{grid:{display:false}}
+        }
+      }
+    });
+  }
+
+  const group = getGroupByIndex(withOPGroups, yearIndex) || withOPGroups[0];
+  const baseGroup = getGroupByIndex(baselineGroups, yearIndex);
+  const endBalWith = group.rows[group.rows.length-1].balance;
+  const endBalBase = baseGroup ? baseGroup.rows[baseGroup.rows.length-1].balance : endBalWith;
+  const equity = propertyValue - endBalWith;
+  const lastRow = group.rows[group.rows.length-1];
+  const monthlyPmt = lastRow.principal + lastRow.interest;
+
+  const cumThroughWithOP = withOPGroups.slice(0, group.yearIndex).flatMap(g=>g.rows);
+  const cumThroughBaseline = baselineGroups.slice(0, group.yearIndex).flatMap(g=>g.rows);
+  const cumInterestWith = cumThroughWithOP.reduce((s,r)=>s+r.interest,0);
+  const cumInterestBase = cumThroughBaseline.reduce((s,r)=>s+r.interest,0);
+  const interestSavedToDate = cumInterestBase - cumInterestWith;
+  const cumOverpaid = cumThroughWithOP.reduce((s,r)=>s+r.overpay,0);
+  const ltv = propertyValue ? 100*endBalWith/propertyValue : 0;
+
+  const html = [
+    statBlock('Calendar year', group.calYear),
+    statBlock('Balance (with overpayments)', fmt(endBalWith), 'current plan', 'teal'),
+    statBlock('Balance (without overpayments)', fmt(endBalBase), baseGroup ? 'baseline scenario' : 'mortgage already repaid by this point', 'orange'),
+    statBlock('Equity', fmt(equity), propertyValue ? pct(100*equity/propertyValue) + ' of property value' : ''),
+    statBlock('Loan-to-value', pct(ltv)),
+    statBlock('Monthly mortgage payment', fmt(monthlyPmt), 'contractual payment that year, excludes overpayments'),
+    statBlock('Interest paid to date', fmt(cumInterestWith)),
+    statBlock('Interest saved to date', fmt(Math.max(interestSavedToDate,0)), 'vs. no overpayments'),
+    statBlock('Overpaid to date', fmt(cumOverpaid))
+  ].join('');
+  document.getElementById('balanceModalStats').innerHTML = html;
+}
+
+// ---- Where Your Payment Goes modal (cumulative through selected year) ----
+function renderDonutModal(){
+  if(!lastSim) return;
+  const sel = document.getElementById('donutModalYearSelect');
+  const yearIndex = parseInt(sel.value || '1', 10);
+  const { withOPGroups, propertyValue } = lastSim;
+
+  const group = getGroupByIndex(withOPGroups, yearIndex) || withOPGroups[0];
+  const cumRows = withOPGroups.slice(0, group.yearIndex).flatMap(g=>g.rows);
+  const p = cumRows.reduce((s,r)=>s+r.principal,0);
+  const i = cumRows.reduce((s,r)=>s+r.interest,0);
+  const o = cumRows.reduce((s,r)=>s+r.overpay,0);
+  const total = p+i+o || 1;
+  const endBal = cumRows.length ? cumRows[cumRows.length-1].balance : 0;
+
+  const ddata = {
+    labels:['Principal','Interest','Overpayments'],
+    datasets:[{data:[p,i,o], backgroundColor:['#0e8f6f','#e8823a','#e0b23a'], borderWidth:0}]
+  };
+  const dctx = document.getElementById('donutModalChart');
+  if(donutModalChart){
+    donutModalChart.data = ddata;
+    donutModalChart.update();
+  } else {
+    donutModalChart = new Chart(dctx, {
+      type:'doughnut',
+      data: ddata,
+      options:{cutout:'68%', maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}, usePointStyle:true}}, tooltip:{callbacks:{label: c => c.label+': £'+Math.round(c.raw).toLocaleString('en-GB')}}}}
+    });
+  }
+
+  const html = [
+    statBlock('Calendar year', group.calYear),
+    statBlock('Cumulative principal paid', fmt(p), pct(100*p/total)+' of total paid', 'teal'),
+    statBlock('Cumulative interest paid', fmt(i), pct(100*i/total)+' of total paid', 'orange'),
+    statBlock('Cumulative overpayments', fmt(o), pct(100*o/total)+' of total paid'),
+    statBlock('Total paid to date', fmt(total)),
+    statBlock('Remaining balance', fmt(endBal))
+  ].join('');
+  document.getElementById('donutModalStats').innerHTML = html;
+}
+
+// ---- Year Detail modal (12-month breakdown for a single calendar year) ----
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function monthLabelForRow(row){
+  if(row.dateOverride){
+    return MONTH_NAMES[row.dateOverride.getMonth()] + ' ' + row.dateOverride.getFullYear();
+  }
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth() + (row.month - 1), 1);
+  return MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+document.getElementById('yearDetailYearSelect').addEventListener('change', renderYearDetailModal);
+
+function renderYearDetailModal(){
+  if(!lastSim) return;
+  const sel = document.getElementById('yearDetailYearSelect');
+  const yearIndex = parseInt(sel.value || '1', 10);
+  const { withOP, baseline, propertyValue, withOPGroups, baselineGroups } = lastSim;
+
+  const group = getGroupByIndex(withOPGroups, yearIndex) || withOPGroups[0];
+  const rows = group.rows;
+
+  const tbody = document.getElementById('yearDetailTableBody');
+  tbody.innerHTML = '';
+  rows.forEach(r => {
+    const equity = propertyValue - r.balance;
+    const tr = document.createElement('tr');
+    if(r.isHistory) tr.style.color = 'var(--muted)';
+    const label = monthLabelForRow(r) + (r.isHistory ? ' <span style="font-size:10px;">(est.)</span>' : '');
+    tr.innerHTML = `<td>${label}</td><td>${fmt(r.balance)}</td><td>${fmt(equity)}</td><td>${fmt(r.principal)}</td><td>${fmt(r.overpay)}</td><td>${fmt(r.interest)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Stats for the right panel
+  const firstRow = rows[0];
+  const lastRow = rows[rows.length-1];
+  const startOfYearBalance = (group.historyStartBalance !== undefined)
+    ? group.historyStartBalance
+    : (firstRow.month > 1 ? withOP.rows[firstRow.month-2].balance : withOP.startBalance);
+  const endOfYearBalance = lastRow.balance;
+  const startEquity = propertyValue - startOfYearBalance;
+  const endEquity = propertyValue - endOfYearBalance;
+
+  const contractualPayments = rows.map(r => r.principal + r.interest);
+  const minPmt = Math.min(...contractualPayments);
+  const maxPmt = Math.max(...contractualPayments);
+  const paymentDisplay = (maxPmt - minPmt < 1) ? fmt(minPmt) : `${fmt(minPmt)} – ${fmt(maxPmt)}`;
+
+  const totalOverpaidThisYear = rows.reduce((s,r)=>s+r.overpay,0);
+  const avgTotalMonthlyOutlay = (rows.reduce((s,r)=>s+r.principal+r.interest+r.overpay,0)) / rows.length;
+  const interestThisYear = rows.reduce((s,r)=>s+r.interest,0);
+
+  const cumThroughWithOP = withOPGroups.slice(0, group.yearIndex).flatMap(g=>g.rows);
+  const cumThroughBaseline = baselineGroups.slice(0, group.yearIndex).flatMap(g=>g.rows);
+  const cumInterestWithOP = cumThroughWithOP.reduce((s,r)=>s+r.interest,0);
+  const cumInterestBaseline = cumThroughBaseline.reduce((s,r)=>s+r.interest,0);
+  const interestSavedCumulative = cumInterestBaseline - cumInterestWithOP;
+
+  const historyMonthCount = rows.filter(r => r.isHistory).length;
+  const monthsSubLabel = `${rows.length} month${rows.length!==1?'s':''} shown` + (historyMonthCount ? ` (${historyMonthCount} estimated, before today)` : '');
+
+  const html = [
+    statBlock('Calendar year', group.calYear, monthsSubLabel),
+    statBlock('Balance: start → end of year', `${fmt(startOfYearBalance)} → ${fmt(endOfYearBalance)}`, '', 'teal'),
+    statBlock('Equity: start → end of year', `${fmt(startEquity)} → ${fmt(endEquity)}`, propertyValue ? pct(100*endEquity/propertyValue)+' of property value by year end' : ''),
+    statBlock('Monthly mortgage payment', paymentDisplay, 'contractual payment, excludes overpayments'),
+    statBlock('Total overpaid this year', fmt(totalOverpaidThisYear)),
+    statBlock('Avg. total monthly outlay', fmt(avgTotalMonthlyOutlay), 'payment + overpayment, averaged over the year', 'orange'),
+    statBlock('Interest paid this year', fmt(interestThisYear)),
+    statBlock('Interest saved to date', fmt(Math.max(interestSavedCumulative,0)), 'vs. no overpayments, cumulative through this year')
+  ].join('');
+  document.getElementById('yearDetailStats').innerHTML = html;
+}
+
+document.querySelectorAll('.panel-head[data-toggle]').forEach(head => {
+  head.addEventListener('click', () => {
+    const panel = document.getElementById(head.dataset.toggle);
+    panel.classList.toggle('collapsed');
+  });
+});
+
+document.getElementById('remortgageEnabled').addEventListener('change', e => {
+  document.getElementById('remortgageFields').style.opacity = e.target.checked ? '1' : '.4';
+  document.getElementById('remortgageFields').style.pointerEvents = e.target.checked ? 'auto' : 'none';
+  recalc();
+});
+
+document.querySelectorAll('#setupSection input:not([data-money="1"]), #setupSection select').forEach(inp => {
+  inp.addEventListener('input', recalc);
+  inp.addEventListener('change', recalc);
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.querySelectorAll('#setupSection input').forEach(inp => inp.value = '');
+  document.getElementById('bonusMonth').value = '';
+  document.getElementById('startMonth').value = '';
+  document.getElementById('remortgageEnabled').checked = false;
+  document.getElementById('remortgageFields').style.opacity = '.4';
+  document.getElementById('remortgageFields').style.pointerEvents = 'none';
+  lumpSums = [];
+  renderLumpSumRows();
+  remortgages = [];
+  renderRemortgageRows();
+  clearSavedState();
+  recalc();
+});
+
+// ---- Save / load to localStorage ----
+const STORAGE_KEY = 'mortgageDashboardState_v1';
+
+function saveState(){
+  try{
+    const fieldIds = ['startMonth','startYear','propertyValue','loanBalance','yearsRemaining',
+      'currentRate','fixedEndYear','variableRate','regularOverpay','overpayCap','bonusMonth','bonusAmount'];
+    const fields = {};
+    fieldIds.forEach(id => { fields[id] = document.getElementById(id).value; });
+    const state = {
+      fields,
+      remortgageEnabled: document.getElementById('remortgageEnabled').checked,
+      lumpSums,
+      remortgages
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.error('Could not save mortgage dashboard state:', e);
+  }
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    const state = JSON.parse(raw);
+    if(state.fields){
+      Object.keys(state.fields).forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.value = state.fields[id];
+      });
+    }
+    if(typeof state.remortgageEnabled === 'boolean'){
+      document.getElementById('remortgageEnabled').checked = state.remortgageEnabled;
+      document.getElementById('remortgageFields').style.opacity = state.remortgageEnabled ? '1' : '.4';
+      document.getElementById('remortgageFields').style.pointerEvents = state.remortgageEnabled ? 'auto' : 'none';
+    }
+    if(Array.isArray(state.lumpSums)) lumpSums = state.lumpSums;
+    if(Array.isArray(state.remortgages)) remortgages = state.remortgages;
+    return true;
+  }catch(e){
+    console.error('Could not load saved mortgage dashboard state:', e);
+    return false;
+  }
+}
+
+function clearSavedState(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+}
+
+attachMoneyFormatting();
+loadState();
+renderLumpSumRows();
+renderRemortgageRows();
+recalc();
+</script>
+</body>
+</html>

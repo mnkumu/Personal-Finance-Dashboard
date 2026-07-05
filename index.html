@@ -367,6 +367,26 @@
     .modal-main{padding:18px 16px;}
     .modal-side{padding:18px 16px;}
     .modal-chart-wrap{min-height:240px;}
+
+    /* "View progress as of" row: wrap into a clean grid instead of overflowing */
+    #viewAsOfRow{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      row-gap:8px;
+      column-gap:8px;
+    }
+    #viewAsOfRow label{grid-column:1/-1;}
+    #viewAsOfRow #viewMonthSelect,
+    #viewAsOfRow #viewYearSelect{
+      min-width:0;
+      width:100%;
+    }
+    #viewAsOfRow .btn-reset-month{
+      grid-column:1/-1;
+      width:100%;
+      text-align:center;
+      margin-left:0;
+    }
   }
 </style>
 </head>

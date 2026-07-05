@@ -920,6 +920,75 @@
 const fmt = n => '£' + Math.round(n).toLocaleString('en-GB');
 const pct = n => (Math.round(n*10)/10) + '%';
 
+// ---- Local storage persistence ----
+const LS_KEY = 'mortgageDashboard.v1';
+let restoringFromStorage = false;
+
+function collectFieldValues(ids){
+  const out = {};
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    out[id] = el.type === 'checkbox' ? el.checked : el.value;
+  });
+  return out;
+}
+function applyFieldValues(vals){
+  if(!vals) return;
+  Object.keys(vals).forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(el.type === 'checkbox') el.checked = vals[id];
+    else el.value = vals[id];
+  });
+}
+
+const SAVED_FIELD_IDS = [
+  'startMonth','startYear','propertyValue','loanBalance','yearsRemaining','currentRate','fixedEndYear','variableRate',
+  'regularOverpay','overpayCap','bonusMonth','bonusAmount','remortgageEnabled',
+  'startingSavings','monthlySavings','bonusSavingsEnabled','annualBonusSavings','bonusSavingsMonth'
+];
+
+function saveToStorage(){
+  if(restoringFromStorage) return;
+  try{
+    const state = {
+      fields: collectFieldValues(SAVED_FIELD_IDS),
+      lumpSums, remortgages, goals,
+      allocationMode, splitAllocations, splitStartAllocations
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+  }catch(e){ console.warn('Could not save to localStorage:', e); }
+}
+
+function loadFromStorage(){
+  let raw;
+  try{ raw = localStorage.getItem(LS_KEY); }
+  catch(e){ console.warn('Could not read localStorage:', e); return; }
+  if(!raw) return;
+  let state;
+  try{ state = JSON.parse(raw); } catch(e){ return; }
+
+  restoringFromStorage = true;
+  applyFieldValues(state.fields);
+  if(Array.isArray(state.lumpSums)) lumpSums = state.lumpSums;
+  if(Array.isArray(state.remortgages)) remortgages = state.remortgages;
+  if(Array.isArray(state.goals)) goals = state.goals;
+  if(state.allocationMode) allocationMode = state.allocationMode;
+  if(state.splitAllocations) splitAllocations = state.splitAllocations;
+  if(state.splitStartAllocations) splitStartAllocations = state.splitStartAllocations;
+
+  if(state.fields){
+    const remoChecked = !!state.fields.remortgageEnabled;
+    document.getElementById('remortgageFields').style.opacity = remoChecked ? '1' : '.4';
+    document.getElementById('remortgageFields').style.pointerEvents = remoChecked ? 'auto' : 'none';
+    const bonusChecked = !!state.fields.bonusSavingsEnabled;
+    document.getElementById('bonusSavingsFields').style.opacity = bonusChecked ? '1' : '.4';
+    document.getElementById('bonusSavingsFields').style.pointerEvents = bonusChecked ? 'auto' : 'none';
+  }
+  restoringFromStorage = false;
+}
+
 // ---- Comma-formatted money inputs ----
 function formatMoneyValue(raw){
   const digits = raw.replace(/[^0-9]/g,'');
@@ -1312,6 +1381,7 @@ function recalc(){
     if(donutChart){ donutChart.destroy(); donutChart = null; }
     lastSim = null;
     document.getElementById('donutYearSelect').innerHTML = '';
+    saveToStorage();
     return;
   }
   setEmptyState(false);
@@ -1459,6 +1529,7 @@ function recalc(){
   updateDonutCardForSelectedYear();
 
   updateCharts(withOP, baseline, propertyValue);
+  saveToStorage();
 }
 
 function updateCharts(withOP, baseline, propertyValue){
@@ -1832,9 +1903,11 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   renderLumpSumRows();
   remortgages = [];
   renderRemortgageRows();
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
   recalc();
 });
 
+loadFromStorage();
 attachMoneyFormatting();
 renderLumpSumRows();
 renderRemortgageRows();
@@ -2103,6 +2176,7 @@ function renderGoals(){
     Object.values(goalCharts).forEach(c => c.destroy());
     goalCharts = {};
     grid.innerHTML = `<div class="empty-note">You haven't added any savings goals yet. Use "Add a savings goal" above to get started.</div>`;
+    saveToStorage();
     return;
   }
 
@@ -2193,6 +2267,7 @@ function renderGoals(){
   if(allocationMode === 'sequential'){
     attachGoalDragHandlers(grid);
   }
+  saveToStorage();
 }
 
 let draggedGoalId = null;

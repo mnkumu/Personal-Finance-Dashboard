@@ -368,21 +368,21 @@
     .modal-side{padding:18px 16px;}
     .modal-chart-wrap{min-height:240px;}
 
-    /* "View progress as of" row: wrap into a clean grid instead of overflowing */
+    /* "View progress as of" row: wrap instead of overflowing */
     #viewAsOfRow{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
+      flex-wrap:wrap;
       row-gap:8px;
-      column-gap:8px;
     }
-    #viewAsOfRow label{grid-column:1/-1;}
+    #viewAsOfRow label{
+      flex-basis:100%;
+    }
     #viewAsOfRow #viewMonthSelect,
     #viewAsOfRow #viewYearSelect{
+      flex:1 1 90px;
       min-width:0;
-      width:100%;
     }
     #viewAsOfRow .btn-reset-month{
-      grid-column:1/-1;
+      flex-basis:100%;
       width:100%;
       text-align:center;
       margin-left:0;

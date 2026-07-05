@@ -23,6 +23,39 @@
     --line:#e7ece9;
     --text:#1c2b27;
     --muted:#6c7d78;
+    --hover-bg:#f3f5f4;
+    --input-bg:#fbfcfc;
+    --track-bg:#eef1f0;
+    --line-strong:#d7e2de;
+    --scrollbar-thumb:#d3dad7;
+    --banner-border:#cdeadf;
+    --banner-text:#0a6e56;
+    --banner-warn-border:#f3d3b3;
+    --banner-warn-text:#8a4a17;
+  }
+
+  [data-theme="dark"]{
+    --bg:#161616;
+    --panel:#212121;
+    --line:#333333;
+    --line-strong:#3d3d3d;
+    --text:#ededed;
+    --muted:#9a9a9a;
+    --hover-bg:#2a2a2a;
+    --input-bg:#262626;
+    --track-bg:#2e2e2e;
+    --scrollbar-thumb:#3a3a3a;
+    --teal-pale:#173229;
+    --orange-pale:#332216;
+    --banner-border:#1f4438;
+    --banner-text:#5fcfab;
+    --banner-warn-border:#4a3320;
+    --banner-warn-text:#e0a868;
+  }
+
+  html{transition:background .2s ease;}
+  body, .panel, .stat-card, .goal-panel, .modal-box, .modal-side, .overpay-row, .remortgage-entry, .goal-suggestion, .allocation-option, .icon-picker-btn, .top-header-bar{
+    transition:background .2s ease, border-color .2s ease, color .2s ease;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -32,32 +65,92 @@
     color:var(--text);
     display:flex;
     min-height:100vh;
+    padding-top:64px;
   }
-  /* Sidebar */
+  /* Frozen top bar — always visible, content scrolls underneath it, never overlaps */
+  .top-header-bar{
+    position:fixed;top:0;left:0;right:0;height:64px;z-index:1100;
+    background:#122622;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;padding:0 20px;
+  }
+  .hamburger-btn{
+    width:44px;height:44px;border-radius:10px;border:none;
+    background:var(--sidebar);color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s;flex-shrink:0;
+  }
+  .hamburger-btn:hover{background:var(--sidebar-hover);}
+  .hamburger-btn svg{width:20px;height:20px;}
+  .theme-toggle-btn{
+    width:44px;height:44px;border-radius:10px;border:none;
+    background:var(--hover-bg);color:var(--text);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .15s,color .15s;flex-shrink:0;
+  }
+  .theme-toggle-btn:hover{background:var(--line-strong);}
+  .theme-toggle-btn svg{width:20px;height:20px;}
+
+  /* Backdrop shown behind the open panel; click closes it */
+  .sidebar-backdrop{
+    position:fixed;inset:0;background:rgba(15,26,23,0.45);
+    z-index:1150;opacity:0;visibility:hidden;transition:opacity .2s ease;
+  }
+  .sidebar-backdrop.open{opacity:1;visibility:visible;}
+
+  /* Sidebar — off-canvas overlay panel */
   .sidebar{
-    width:76px;
+    position:fixed;top:0;left:0;bottom:0;
+    width:220px;
     background:var(--sidebar);
     display:flex;
     flex-direction:column;
-    align-items:center;
-    padding:20px 0;
+    align-items:stretch;
+    padding:20px 14px;
+    z-index:1200;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    box-shadow:2px 0 16px rgba(0,0,0,0.2);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+  .sidebar-head .sidebar-title{color:#fff;font-weight:800;font-size:15px;letter-spacing:-0.01em;}
+  .sidebar-close{
+    width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,0.1);
+    color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .sidebar-close:hover{background:rgba(255,255,255,0.2);}
+  .sidebar-close svg{width:16px;height:16px;}
+  .sidebar nav{display:flex;flex-direction:column;gap:6px;width:100%;align-items:stretch;}
+  .sidebar button.nav-item{
+    width:100%;height:44px;border-radius:10px;border:none;background:transparent;
+    color:#9fb3ad;cursor:pointer;display:flex;align-items:center;justify-content:flex-start;
+    gap:12px;padding:0 10px;
+    transition:background .15s, color .15s;
     flex-shrink:0;
   }
-  .sidebar .logo{
-    width:38px;height:38px;border-radius:10px;
-    background:linear-gradient(135deg,var(--teal),var(--gold));
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-weight:800;font-size:16px;margin-bottom:28px;
+  .sidebar button.nav-item svg{width:20px;height:20px;flex-shrink:0;}
+  .sidebar button.nav-item.active{background:var(--teal);color:#fff;}
+  .sidebar button.nav-item:hover:not(.active){background:var(--sidebar-hover);color:#fff;}
+  .sidebar button.nav-item .nav-label{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;}
+  .nav-group{display:flex;flex-direction:column;}
+  .nav-item.nav-parent{justify-content:space-between;}
+  .nav-item.nav-parent .nav-label{flex:1;text-align:left;}
+  .nav-chevron{width:16px!important;height:16px!important;flex-shrink:0;transition:transform .2s ease;}
+  .nav-parent[aria-expanded="true"] .nav-chevron{transform:rotate(180deg);}
+  .nav-submenu{
+    max-height:0;overflow:hidden;opacity:0;
+    display:flex;flex-direction:column;gap:2px;
+    padding-left:0;
+    transition:max-height .22s ease, opacity .18s ease, padding .18s ease;
   }
-  .sidebar nav{display:flex;flex-direction:column;gap:6px;width:100%;align-items:center;}
-  .sidebar button{
-    width:44px;height:44px;border-radius:10px;border:none;background:transparent;
-    color:#9fb3ad;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:background .15s, color .15s;
+  .nav-submenu.open{max-height:200px;opacity:1;padding:4px 0 6px;}
+  .nav-subitem{
+    width:100%;border:none;background:transparent;color:#9fb3ad;cursor:pointer;
+    text-align:left;font-size:13px;font-weight:600;border-radius:8px;
+    padding:9px 10px 9px 46px;transition:background .15s, color .15s;
   }
-  .sidebar button svg{width:20px;height:20px;}
-  .sidebar button.active{background:var(--teal);color:#fff;}
-  .sidebar button:hover:not(.active){background:var(--sidebar-hover);color:#fff;}
+  .nav-subitem:hover:not(.active){background:var(--sidebar-hover);color:#fff;}
+  .nav-subitem.active{background:rgba(14,143,111,0.18);color:#fff;}
   .sidebar .spacer{flex:1;}
   .sidebar .avatar{
     width:38px;height:38px;border-radius:50%;
@@ -81,8 +174,8 @@
   .btn:active{transform:scale(.97);}
   .btn-primary{background:var(--teal);color:#fff;}
   .btn-primary:hover{opacity:.9;}
-  .btn-ghost{background:#fff;color:var(--text);border:1px solid var(--line);}
-  .btn-ghost:hover{background:#f3f5f4;}
+  .btn-ghost{background:var(--panel);color:var(--text);border:1px solid var(--line);}
+  .btn-ghost:hover{background:var(--hover-bg);}
 
   /* Stat row */
   .stat-row{display:flex;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
@@ -112,7 +205,7 @@
   .panel-head-left{display:flex;align-items:center;gap:12px;}
   .panel-head h2{margin:0;}
   .chevron-btn{background:none;border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:4px;border-radius:6px;flex-shrink:0;}
-  .chevron-btn:hover{background:#f3f5f4;color:var(--text);}
+  .chevron-btn:hover{background:var(--hover-bg);color:var(--text);}
   .chevron-btn svg{width:16px;height:16px;transition:transform .2s ease;}
   .panel.collapsed .chevron-btn svg{transform:rotate(-90deg);}
   .panel-body{overflow:hidden;max-height:1200px;opacity:1;transition:max-height .28s ease, opacity .2s ease, margin-top .2s ease;margin-top:16px;}
@@ -128,13 +221,13 @@
   .legend .row span.val{margin-left:auto;font-weight:700;color:var(--muted);font-size:12px;}
 
   .clickable-panel{cursor:pointer;transition:box-shadow .15s, border-color .15s;}
-  .clickable-panel:hover{box-shadow:0 2px 14px rgba(15,42,36,0.08);border-color:#d7e2de;}
+  .clickable-panel:hover{box-shadow:0 2px 14px rgba(15,42,36,0.08);border-color:var(--line-strong);}
   .panel-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
   .panel-card-head h2{margin:0;}
   .expand-hint{font-size:11.5px;color:var(--muted);opacity:0;transition:opacity .15s;white-space:nowrap;}
   .clickable-panel:hover .expand-hint{opacity:1;}
   .donut-filter-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12.5px;color:var(--muted);font-weight:600;}
-  .donut-filter-row select{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;font-family:inherit;color:var(--text);background:#fbfcfc;}
+  .donut-filter-row select{border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px;font-family:inherit;color:var(--text);background:var(--input-bg);}
   .donut-filter-row select:focus{outline:2px solid var(--teal);outline-offset:1px;}
 
   /* Modal */
@@ -150,14 +243,14 @@
   .modal-main{flex:1.6;padding:26px 28px;display:flex;flex-direction:column;min-width:0;overflow:auto;}
   .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
   .modal-header h2{margin:0;font-size:18px;}
-  .modal-close{background:#f3f5f4;border:none;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .modal-close:hover{background:#e7ece9;color:var(--text);}
+  .modal-close{background:var(--hover-bg);border:none;width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .modal-close:hover{background:var(--line);color:var(--text);}
   .modal-chart-wrap{flex:1;min-height:340px;position:relative;}
   .modal-donut-wrap{display:flex;align-items:center;justify-content:center;}
   .modal-donut-wrap canvas{max-height:420px;}
-  .modal-side{flex:1;min-width:270px;max-width:320px;background:#fbfcfc;border-left:1px solid var(--line);padding:26px 22px;overflow:auto;}
+  .modal-side{flex:1;min-width:270px;max-width:320px;background:var(--input-bg);border-left:1px solid var(--line);padding:26px 22px;overflow:auto;}
   .modal-side .field label{margin-bottom:6px;display:block;}
-  .modal-side .field select{width:100%;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;font-family:inherit;}
+  .modal-side .field select{width:100%;font-size:14px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-family:inherit;}
   .modal-stat-list{display:flex;flex-direction:column;gap:14px;}
   .modal-stat{border-bottom:1px solid var(--line);padding-bottom:12px;}
   .modal-stat:last-child{border-bottom:none;}
@@ -180,7 +273,7 @@
   table.contracts td{padding:12px 10px;border-bottom:1px solid var(--line);}
   table.contracts tr:last-child td{border-bottom:none;}
   table.contracts tr.year-row{cursor:pointer;transition:background .12s;}
-  table.contracts tr.year-row:hover{background:#f6f9f8;}
+  table.contracts tr.year-row:hover{background:var(--hover-bg);}
 
   /* Right rail */
   .rail-block{background:var(--panel);border-radius:14px;border:1px solid var(--line);padding:20px 20px;margin-bottom:16px;}
@@ -189,7 +282,7 @@
   .bar-item:last-child{margin-bottom:0;}
   .bar-item .lbl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;}
   .bar-item .lbl b{font-weight:700;}
-  .bar-track{height:6px;border-radius:4px;background:#eef1f0;overflow:hidden;}
+  .bar-track{height:6px;border-radius:4px;background:var(--track-bg);overflow:hidden;}
   .bar-fill{height:100%;border-radius:4px;transition:width .2s;}
 
   .cycle-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -209,11 +302,11 @@
   .field label{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
   .field input, .field select{
     border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px;
-    font-family:inherit;color:var(--text);background:#fbfcfc;
+    font-family:inherit;color:var(--text);background:var(--input-bg);
     width:100%;box-sizing:border-box;
   }
   .field .prefix-wrap, .field .suffix-wrap{width:100%;}
-  .field input::placeholder{color:#b7c2be;}
+  .field input::placeholder{color:var(--muted);}
   .field input:focus, .field select:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
   .field .prefix-wrap{position:relative;}
   .field .prefix-wrap span.prefix{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;pointer-events:none;}
@@ -223,20 +316,20 @@
   .field .suffix-wrap input{padding-right:26px;}
 
   .field .prefix-wrap.has-clear-btn input{padding-right:26px;}
-  .clear-money-btn{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:19px;height:19px;border:none;background:#e7ece9;color:var(--muted);border-radius:50%;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;}
-  .clear-money-btn:hover{background:#d7e2de;color:var(--text);}
+  .clear-money-btn{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:19px;height:19px;border:none;background:var(--line);color:var(--muted);border-radius:50%;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;}
+  .clear-money-btn:hover{background:var(--line-strong);color:var(--text);}
 
   .divider{height:1px;background:var(--line);margin:18px 0;}
 
   .overpay-list{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
-  .overpay-row{display:flex;gap:8px;align-items:center;background:#fbfcfc;border:1px solid var(--line);border-radius:9px;padding:8px 10px;flex-wrap:wrap;}
-  .overpay-row input, .overpay-row select{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:13px;font-family:inherit;background:#fff;}
+  .overpay-row{display:flex;gap:8px;align-items:center;background:var(--input-bg);border:1px solid var(--line);border-radius:9px;padding:8px 10px;flex-wrap:wrap;}
+  .overpay-row input, .overpay-row select{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:13px;font-family:inherit;background:var(--panel);}
   .overpay-row .rm{margin-left:auto;background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1;padding:4px;}
   .add-link{background:none;border:1px dashed var(--line);color:var(--teal-dark);font-weight:600;font-size:13px;border-radius:9px;padding:9px;cursor:pointer;width:100%;}
   .add-link:hover{background:var(--teal-pale);}
 
   .remortgage-list{display:flex;flex-direction:column;gap:12px;margin-bottom:12px;}
-  .remortgage-entry{background:#fbfcfc;border:1px solid var(--line);border-radius:11px;padding:14px 16px;}
+  .remortgage-entry{background:var(--input-bg);border:1px solid var(--line);border-radius:11px;padding:14px 16px;}
   .remortgage-entry-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
   .remortgage-entry-head b{font-size:13px;font-weight:700;}
   .remortgage-entry-head .rm{background:none;border:none;color:var(--red);cursor:pointer;font-size:17px;line-height:1;padding:2px 4px;}
@@ -246,15 +339,18 @@
   .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
   .switch{position:relative;width:38px;height:22px;flex-shrink:0;}
   .switch input{opacity:0;width:0;height:0;}
-  .switch .track{position:absolute;inset:0;background:#d8dedb;border-radius:20px;cursor:pointer;transition:.15s;}
+  .switch .track{position:absolute;inset:0;background:var(--track-bg);border-radius:20px;cursor:pointer;transition:.15s;}
   .switch .track:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;}
   .switch input:checked + .track{background:var(--teal);}
   .switch input:checked + .track:before{transform:translateX(16px);}
+  .switch.switch-sm{width:30px;height:17px;}
+  .switch.switch-sm .track:before{width:12px;height:12px;left:2.5px;top:2.5px;}
+  .switch.switch-sm input:checked + .track:before{transform:translateX(13px);}
 
-  .banner{background:var(--teal-pale);border:1px solid #cdeadf;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--teal-dark);margin-top:14px;line-height:1.5;}
+  .banner{background:var(--teal-pale);border:1px solid var(--banner-border);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--banner-text);margin-top:14px;line-height:1.5;}
   .banner b{font-weight:800;}
-  .banner.warn{background:var(--orange-pale);border-color:#f3d3b3;color:#8a4a17;}
-  .banner.neutral{background:#f3f5f4;border-color:var(--line);color:var(--muted);}
+  .banner.warn{background:var(--orange-pale);border-color:var(--banner-warn-border);color:var(--banner-warn-text);}
+  .banner.neutral{background:var(--hover-bg);border-color:var(--line);color:var(--muted);}
 
   .empty-note{font-size:12.5px;color:var(--muted);text-align:center;padding:30px 10px;}
 
@@ -262,19 +358,34 @@
   .goal-step{display:none;}
   .goal-step.active{display:block;}
   .goal-suggestions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
-  .goal-suggestion{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:1px solid var(--line);border-radius:12px;background:#fbfcfc;cursor:pointer;transition:border-color .15s, background .15s;}
+  .goal-suggestion{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:1px solid var(--line);border-radius:12px;background:var(--input-bg);cursor:pointer;transition:border-color .15s, background .15s;}
   .goal-suggestion:hover{border-color:var(--teal);background:var(--teal-pale);}
   .goal-suggestion.selected{border-color:var(--teal);background:var(--teal-pale);box-shadow:0 0 0 1px var(--teal);}
   .goal-suggestion .icon-circle{width:38px;height:38px;border-radius:50%;background:#fff;color:var(--teal-dark);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .goal-suggestion .icon-circle svg{width:19px;height:19px;}
   .goal-suggestion span.lbl{font-size:12.5px;font-weight:600;text-align:center;line-height:1.3;}
   .icon-picker-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;}
-  .icon-picker-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:#fbfcfc;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+  .color-picker-grid{display:flex;flex-wrap:wrap;gap:12px;}
+  .color-swatch-btn{
+    width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;
+    padding:0;position:relative;flex-shrink:0;
+  }
+  .color-swatch-btn.selected::after{
+    content:'';position:absolute;inset:-4px;border-radius:50%;
+    border:2px solid var(--text);
+  }
+  .tracking-goal-badge{
+    display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;
+    color:#fff;font-size:11px;font-weight:700;white-space:nowrap;margin:2px 4px 2px 0;
+  }
+  .tracking-goal-badge svg{width:11px;height:11px;flex-shrink:0;}
+  .milestone-cell{display:flex;flex-wrap:wrap;align-items:center;}
+  .icon-picker-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--input-bg);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
   .icon-picker-btn svg{width:17px;height:17px;}
   .icon-picker-btn:hover{border-color:var(--teal);color:var(--teal-dark);}
   .icon-picker-btn.selected{border-color:var(--teal);background:var(--teal);color:#fff;}
   .goals-grid{display:flex;flex-direction:column;gap:16px;}
-  .allocation-option{flex:1;min-width:220px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;background:#fbfcfc;transition:border-color .15s, background .15s;}
+  .allocation-option{flex:1;min-width:220px;border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;background:var(--input-bg);transition:border-color .15s, background .15s;}
   .allocation-option:hover{border-color:var(--teal);}
   .allocation-option.selected{border-color:var(--teal);background:var(--teal-pale);}
   .allocation-option .opt-title{font-weight:700;font-size:13.5px;margin-bottom:4px;}
@@ -282,9 +393,9 @@
   .btn-nav-month{width:30px;height:30px;border-radius:8px;border:none;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:opacity .15s;}
   .btn-nav-month svg{width:15px;height:15px;}
   .btn-nav-month:hover:not(:disabled){opacity:.85;}
-  .btn-nav-month:disabled{background:#d8dedb;cursor:not-allowed;}
-  .btn-reset-month{border:1px solid var(--line);background:#fff;color:var(--text);font-size:12.5px;font-weight:600;border-radius:8px;padding:6px 12px;cursor:pointer;flex-shrink:0;margin-left:4px;}
-  .btn-reset-month:hover{background:#f3f5f4;}
+  .btn-nav-month:disabled{background:var(--track-bg);cursor:not-allowed;}
+  .btn-reset-month{border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:12.5px;font-weight:600;border-radius:8px;padding:6px 12px;cursor:pointer;flex-shrink:0;margin-left:4px;}
+  .btn-reset-month:hover{background:var(--hover-bg);}
   .goal-panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
   .goal-panel-head{display:flex;align-items:center;gap:12px;padding:14px 20px;color:#fff;}
   .goal-panel-head .icon-circle-white{width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -292,6 +403,9 @@
   .goal-panel-head h3{margin:0;font-size:15px;font-weight:700;flex:1;}
   .goal-panel-head .rm-goal-panel{background:rgba(255,255,255,0.2);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .goal-panel-head .rm-goal-panel:hover{background:rgba(255,255,255,0.35);}
+  .goal-panel-head .edit-goal-panel{background:rgba(255,255,255,0.2);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .goal-panel-head .edit-goal-panel svg{width:13px;height:13px;}
+  .goal-panel-head .edit-goal-panel:hover{background:rgba(255,255,255,0.35);}
   .goal-panel-head .reorder-controls{display:flex;flex-direction:column;gap:2px;flex-shrink:0;}
   .goal-panel-head .reorder-btn{width:20px;height:16px;padding:0;border:none;background:rgba(255,255,255,0.22);color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .12s;}
   .goal-panel-head .reorder-btn svg{width:12px;height:12px;}
@@ -313,7 +427,7 @@
   .subtab-btn:hover:not(.active){color:var(--text);}
 
   ::-webkit-scrollbar{width:8px;height:8px;}
-  ::-webkit-scrollbar-thumb{background:#d3dad7;border-radius:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);border-radius:8px;}
 
   /* ---- Responsive cascade ---- */
 
@@ -336,10 +450,6 @@
   /* Small tablets / large phones */
   @media(max-width:760px){
     body{flex-direction:column;}
-    .sidebar{width:100%;flex-direction:row;padding:10px 16px;justify-content:space-between;}
-    .sidebar .logo{margin-bottom:0;}
-    .sidebar nav{flex-direction:row;width:auto;}
-    .sidebar .spacer{display:none;}
     .content{padding:20px 16px;}
     .rightrail{grid-template-columns:1fr 1fr;padding:0 16px 24px;}
     header.top{align-items:stretch;}
@@ -359,8 +469,6 @@
 
   /* Phones */
   @media(max-width:520px){
-    .sidebar nav{gap:2px;}
-    .sidebar button{width:38px;height:38px;}
     .content{padding:16px 12px;}
     .rightrail{grid-template-columns:1fr;padding:0 12px 20px;}
     .stat-row{gap:10px;}
@@ -401,30 +509,64 @@
 </head>
 <body>
 
-<div class="sidebar">
-  <div class="logo">M</div>
+<div class="top-header-bar">
+  <button type="button" class="hamburger-btn" id="hamburgerBtn" title="Open menu" aria-label="Open menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+  <div style="flex:1;"></div>
+  <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Toggle dark mode" aria-label="Toggle dark mode">
+    <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 4.2l1.55 1.55M18.25 18.25l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.2 19.8l1.55-1.55M18.25 5.75l1.55-1.55"/>
+    </svg>
+    <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>
+    </svg>
+  </button>
+</div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <span class="sidebar-title">Menu</span>
+    <button type="button" class="sidebar-close" id="sidebarCloseBtn" aria-label="Close menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
   <nav>
-    <button class="active" title="Dashboard" id="navDashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
-    </button>
-    <button title="Savings dashboard" id="navSavings">
+    <div class="nav-group">
+      <button class="nav-item nav-parent active" title="Mortgage" id="navMortgageToggle" aria-expanded="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10"/></svg>
+        <span class="nav-label">Mortgage</span>
+        <svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="nav-submenu open" id="mortgageSubmenu">
+        <button class="nav-subitem" id="navMortgageCalc">Mortgage Calculator</button>
+        <button class="nav-subitem active" id="navMortgageOverpay">Mortgage Overpayment</button>
+      </div>
+    </div>
+    <button class="nav-item" title="Savings Goals" id="navSavings">
       <svg viewBox="0 0 24 24"><text x="12" y="18.5" text-anchor="middle" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="currentColor">£</text></svg>
+      <span class="nav-label">Savings Goals</span>
     </button>
-    <button title="Term">
+    <button class="nav-item" title="Term">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <span class="nav-label">Term</span>
     </button>
-    <button title="Remortgage">
+    <button class="nav-item" title="Remortgage">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14h13M4 14l4-4M4 14l4 4M20 10H7M20 10l-4-4M20 10l-4 4"/></svg>
+      <span class="nav-label">Remortgage</span>
     </button>
-    <button title="Settings">
+    <button class="nav-item" title="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      <span class="nav-label">Settings</span>
     </button>
   </nav>
   <div class="spacer"></div>
   <div class="avatar">JD</div>
 </div>
 
-<div class="main">
+<div class="main" id="overpayView">
   <div class="content">
     <header class="top">
       <div>
@@ -772,6 +914,108 @@
   </div>
 </div>
 
+<div class="main" id="calculatorView" style="display:none;">
+  <div class="content" style="max-width:760px;">
+    <header class="top">
+      <div>
+        <h1>Mortgage Calculator</h1>
+        <p>Get a quick estimate of your monthly repayment and stamp duty.</p>
+      </div>
+    </header>
+
+    <div class="panel" style="margin-bottom:16px;">
+      <h2>Loan Details</h2>
+      <div class="field-grid" data-cols="2" style="margin-bottom:14px;">
+        <div class="field">
+          <label>Property value</label>
+          <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="calcPropertyValue" placeholder="e.g. 320,000" data-money="1"></div>
+        </div>
+        <div class="field">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <label style="margin-bottom:0;">Deposit</label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <span style="font-size:11px;color:var(--muted);font-weight:600;">£</span>
+              <span class="switch switch-sm">
+                <input type="checkbox" id="calcDepositIsPercent">
+                <span class="track"></span>
+              </span>
+              <span style="font-size:11px;color:var(--muted);font-weight:600;">%</span>
+            </label>
+          </div>
+          <div class="prefix-wrap" id="calcDepositValueWrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="calcDepositValue" placeholder="e.g. 32,000" data-money="1"></div>
+          <div class="suffix-wrap" id="calcDepositPctWrap" style="display:none;"><input type="number" id="calcDepositPct" placeholder="e.g. 10" step="0.1" min="0" max="100"><span class="suffix">%</span></div>
+        </div>
+      </div>
+      <div class="field-grid" data-cols="3">
+        <div class="field">
+          <label>Interest rate</label>
+          <div class="suffix-wrap"><input type="number" id="calcRate" placeholder="e.g. 4.75" step="0.01" min="0"><span class="suffix">%</span></div>
+        </div>
+        <div class="field">
+          <label>Term (years)</label>
+          <input type="number" id="calcTerm" placeholder="e.g. 25" step="1" min="1">
+        </div>
+        <div class="field">
+          <label>Loan amount (calculated)</label>
+          <input type="text" id="calcLoanAmountDisplay" disabled style="color:var(--text);background:var(--hover-bg);">
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="dot-label"><span class="dot teal"></span>Monthly payment</div>
+        <div class="value" id="calcMonthlyPayment">--</div>
+        <div class="sub">principal &amp; interest</div>
+      </div>
+      <div class="stat-card">
+        <div class="dot-label"><span class="dot orange"></span>Total repaid</div>
+        <div class="value" id="calcTotalRepaid">--</div>
+        <div class="sub">over the full term</div>
+      </div>
+      <div class="stat-card">
+        <div class="dot-label"><span class="dot red"></span>Total interest</div>
+        <div class="value" id="calcTotalInterest">--</div>
+        <div class="sub">over the full term</div>
+      </div>
+    </div>
+
+    <div class="empty-note" id="calcEmptyNote">Enter a property value, deposit, interest rate and term above to see your estimated monthly payment.</div>
+
+    <div class="panel" style="margin:16px 0;">
+      <h2>Stamp Duty <span class="muted-tag">England &amp; Northern Ireland (SDLT) only</span></h2>
+      <div class="field-grid" data-cols="3" style="margin-bottom:16px;">
+        <div class="field" style="grid-column:span 2;">
+          <label>Buyer type</label>
+          <select id="calcBuyerType">
+            <option value="first">Buying my first home</option>
+            <option value="next">Buying my next home</option>
+            <option value="additional">Buying an additional home</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stat-row" style="margin-bottom:0;">
+        <div class="stat-card">
+          <div class="dot-label"><span class="dot blue"></span>Estimated Stamp Duty</div>
+          <div class="value" id="calcStampDuty">--</div>
+          <div class="sub" id="calcStampDutySub">based on buyer type above</div>
+        </div>
+      </div>
+
+      <div id="calcStampDutyBreakdownWrap" style="margin-top:16px;display:none;">
+        <div style="max-height:220px;overflow:auto;">
+          <table class="contracts" id="calcStampDutyTable">
+            <thead><tr><th>Portion of price</th><th>Rate</th><th>Tax</th></tr></thead>
+            <tbody id="calcStampDutyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="banner neutral" style="margin-top:14px;">This is an estimate for guidance only, based on published HMRC SDLT rates. It doesn't cover Scotland (LBTT) or Wales (LTT), and doesn't account for reliefs, non-UK resident surcharges, or shared ownership. Always confirm the exact figure with your solicitor or HMRC.</div>
+    </div>
+  </div>
+</div>
+
 <div class="main" id="savingsView" style="display:none;">
   <div class="content" style="max-width:1400px;">
     <header class="top">
@@ -790,7 +1034,7 @@
     </div>
 
     <div id="goalsTabPanel">
-      <div class="panel" id="panel-monthly-savings" style="margin-bottom:16px;display:none;">
+      <div class="panel collapsed" id="panel-monthly-savings" style="margin-bottom:16px;display:none;">
         <div class="panel-head" data-toggle="panel-monthly-savings">
           <div class="panel-head-left"><h2>Monthly Savings</h2></div>
           <button class="chevron-btn" type="button" aria-label="Collapse Monthly Savings">
@@ -801,7 +1045,7 @@
           <div class="field-grid" style="margin-bottom:12px;max-width:260px;">
             <div class="field">
               <label>Today's date</label>
-              <input type="text" id="todayDateDisplay" disabled style="color:var(--text);background:#f3f5f4;">
+              <input type="text" id="todayDateDisplay" disabled style="color:var(--text);background:var(--hover-bg);">
             </div>
           </div>
           <div class="field-grid" data-cols="2" style="margin-bottom:12px;">
@@ -905,9 +1149,9 @@
         </div>
         <div id="trackingBanner" class="banner" style="display:none;margin-bottom:18px;"></div>
         <div style="max-height:420px;overflow:auto;" id="trackingTableWrap">
-          <table class="contracts" id="trackingTable" style="min-width:560px;">
+          <table class="contracts" id="trackingTable" style="min-width:680px;">
             <thead>
-              <tr><th>Month</th><th>Projected Total</th><th>Projected</th><th>Actual</th><th>Variance</th></tr>
+              <tr><th>Month</th><th>Projected Total</th><th>Projected</th><th>Actual</th><th>Variance</th><th>Milestone</th></tr>
             </thead>
             <tbody id="trackingTableBody"></tbody>
           </table>
@@ -952,13 +1196,47 @@
           <div style="font-size:16px;font-weight:700;" id="goalStep2Name"></div>
         </div>
         <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:8px;">How much do you want to save?</label>
-        <div class="field" style="max-width:220px;">
+        <div class="field" style="max-width:220px;margin-bottom:20px;">
           <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="goalAmount" placeholder="e.g. 5,000" data-money="1"></div>
         </div>
+        <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:8px;">Colour</label>
+        <div class="color-picker-grid" id="goalColorPickerGrid"></div>
         <div style="display:flex;justify-content:space-between;margin-top:26px;">
           <button class="btn btn-ghost" id="goalStep2Back">Back</button>
           <button class="btn btn-primary" id="goalAddBtn">Add goal</button>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit savings goal modal -->
+<div class="modal-overlay" id="editGoalModalOverlay">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-main" style="flex:1;">
+      <div class="modal-header">
+        <h2>Edit savings goal</h2>
+        <button class="modal-close" data-close="editGoalModalOverlay" aria-label="Close">&times;</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+        <div class="icon-circle" id="editGoalIconWrap" style="width:42px;height:42px;border-radius:12px;background:var(--teal-pale);color:var(--teal-dark);display:flex;align-items:center;justify-content:center;flex-shrink:0;"></div>
+        <div style="font-size:16px;font-weight:700;" id="editGoalName"></div>
+      </div>
+
+      <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:8px;">Target amount</label>
+      <div class="field" style="max-width:220px;margin-bottom:22px;">
+        <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="editGoalAmount" placeholder="e.g. 5,000" data-money="1"></div>
+      </div>
+
+      <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:8px;">Icon</label>
+      <div class="icon-picker-grid" id="editIconPickerGrid" style="margin-bottom:22px;"></div>
+
+      <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:8px;">Colour</label>
+      <div class="color-picker-grid" id="editColorPickerGrid"></div>
+
+      <div style="display:flex;justify-content:flex-end;margin-top:26px;">
+        <button class="btn btn-primary" id="editGoalSaveBtn">Save changes</button>
       </div>
     </div>
   </div>
@@ -976,11 +1254,11 @@
       <div class="field-grid" data-cols="2" style="margin-bottom:18px;">
         <div class="field">
           <label>Monthly savings amount</label>
-          <input type="text" id="splitMonthlyDisplay" disabled style="color:var(--text);background:#f3f5f4;">
+          <input type="text" id="splitMonthlyDisplay" disabled style="color:var(--text);background:var(--hover-bg);">
         </div>
         <div class="field">
           <label>Starting savings amount</label>
-          <input type="text" id="splitStartDisplay" disabled style="color:var(--text);background:#f3f5f4;">
+          <input type="text" id="splitStartDisplay" disabled style="color:var(--text);background:var(--hover-bg);">
         </div>
       </div>
 
@@ -1741,7 +2019,7 @@ function updateCharts(withOP, baseline, propertyValue){
         interaction:{mode:'index', intersect:false},
         plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}, usePointStyle:true}}},
         scales:{
-          y:{ticks:{callback:v=>'£'+(v/1000)+'k'}, grid:{color:'#eef1f0'}},
+          y:{ticks:{callback:v=>'£'+(v/1000)+'k'}, grid:{color:'var(--track-bg)'}},
           x:{grid:{display:false}}
         }
       }
@@ -1892,7 +2170,7 @@ function renderBalanceModal(){
         interaction:{mode:'index', intersect:false},
         plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}, usePointStyle:true}}},
         scales:{
-          y:{ticks:{callback:v=>'£'+(v/1000)+'k'}, grid:{color:'#eef1f0'}},
+          y:{ticks:{callback:v=>'£'+(v/1000)+'k'}, grid:{color:'var(--track-bg)'}},
           x:{grid:{display:false}}
         }
       }
@@ -2164,6 +2442,28 @@ function highlightIconPicker(){
   document.querySelectorAll('.icon-picker-btn').forEach(b => b.classList.toggle('selected', b.dataset.icon === goalDraft.icon));
 }
 
+function renderGoalColorPicker(){
+  const grid = document.getElementById('goalColorPickerGrid');
+  grid.innerHTML = GOAL_PALETTE.map((c, i) => `<button type="button" class="color-swatch-btn" data-color-index="${i}" style="background:${c.bar};" title="Colour ${i+1}"></button>`).join('');
+  grid.querySelectorAll('.color-swatch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      goalDraft.colorIndex = +btn.dataset.colorIndex;
+      highlightGoalColorPicker();
+      updateGoalStep2IconPreview();
+    });
+  });
+}
+function highlightGoalColorPicker(){
+  document.querySelectorAll('#goalColorPickerGrid .color-swatch-btn').forEach(b => b.classList.toggle('selected', +b.dataset.colorIndex === goalDraft.colorIndex));
+}
+function updateGoalStep2IconPreview(){
+  const wrap = document.getElementById('goalStep2IconWrap');
+  const c = GOAL_PALETTE[goalDraft.colorIndex % GOAL_PALETTE.length];
+  wrap.style.background = c.light;
+  wrap.style.color = c.bar;
+  wrap.innerHTML = iconSvg(goalDraft.icon);
+}
+
 document.getElementById('goalCustomName').addEventListener('input', e => {
   goalDraft.name = e.target.value;
   document.querySelectorAll('.goal-suggestion').forEach(x => x.classList.remove('selected'));
@@ -2175,11 +2475,12 @@ function showGoalStep(n){
 }
 
 function openGoalModal(){
-  goalDraft = {name:'', icon:'star'};
+  goalDraft = {name:'', icon:'star', colorIndex: nextPaletteIndex % GOAL_PALETTE.length};
   document.getElementById('goalCustomName').value = '';
   document.getElementById('goalAmount').value = '';
   document.querySelectorAll('.goal-suggestion').forEach(x => x.classList.remove('selected'));
   highlightIconPicker();
+  highlightGoalColorPicker();
   showGoalStep(1);
   openModal('goalModalOverlay');
 }
@@ -2189,7 +2490,8 @@ document.getElementById('goalStep1Next').addEventListener('click', () => {
   if(!name){ document.getElementById('goalCustomName').focus(); return; }
   goalDraft.name = name;
   document.getElementById('goalStep2Name').textContent = goalDraft.name;
-  document.getElementById('goalStep2IconWrap').innerHTML = iconSvg(goalDraft.icon);
+  updateGoalStep2IconPreview();
+  highlightGoalColorPicker();
   showGoalStep(2);
 });
 document.getElementById('goalStep2Back').addEventListener('click', () => showGoalStep(1));
@@ -2197,18 +2499,91 @@ document.getElementById('goalStep2Back').addEventListener('click', () => showGoa
 document.getElementById('goalAddBtn').addEventListener('click', () => {
   const amount = getNum('goalAmount');
   if(isNaN(amount) || amount <= 0){ document.getElementById('goalAmount').focus(); return; }
-  goals.push({id: Date.now(), name: goalDraft.name, icon: goalDraft.icon, amount, paletteIndex: nextPaletteIndex});
+  goals.push({id: Date.now(), name: goalDraft.name, icon: goalDraft.icon, amount, paletteIndex: goalDraft.colorIndex});
   nextPaletteIndex++;
   renderGoals();
   closeModal('goalModalOverlay');
 });
+
+// ---- Edit existing savings goal (target amount, icon & colour) ----
+let editGoalId = null;
+let editGoalIcon = 'star';
+let editGoalColorIndex = 0;
+
+function renderEditIconPicker(){
+  const grid = document.getElementById('editIconPickerGrid');
+  grid.innerHTML = Object.keys(GOAL_ICONS).map(key => `<button type="button" class="icon-picker-btn edit-icon-picker-btn" data-icon="${key}">${iconSvg(key)}</button>`).join('');
+  grid.querySelectorAll('.edit-icon-picker-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      editGoalIcon = btn.dataset.icon;
+      highlightEditIconPicker();
+      updateEditGoalIconPreview();
+    });
+  });
+}
+function highlightEditIconPicker(){
+  document.querySelectorAll('.edit-icon-picker-btn').forEach(b => b.classList.toggle('selected', b.dataset.icon === editGoalIcon));
+}
+
+function renderEditColorPicker(){
+  const grid = document.getElementById('editColorPickerGrid');
+  grid.innerHTML = GOAL_PALETTE.map((c, i) => `<button type="button" class="color-swatch-btn" data-color-index="${i}" style="background:${c.bar};" title="Colour ${i+1}"></button>`).join('');
+  grid.querySelectorAll('.color-swatch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      editGoalColorIndex = +btn.dataset.colorIndex;
+      highlightEditColorPicker();
+      updateEditGoalIconPreview();
+    });
+  });
+}
+function highlightEditColorPicker(){
+  document.querySelectorAll('#editColorPickerGrid .color-swatch-btn').forEach(b => b.classList.toggle('selected', +b.dataset.colorIndex === editGoalColorIndex));
+}
+function updateEditGoalIconPreview(){
+  const wrap = document.getElementById('editGoalIconWrap');
+  const c = GOAL_PALETTE[editGoalColorIndex % GOAL_PALETTE.length];
+  wrap.style.background = c.light;
+  wrap.style.color = c.bar;
+  wrap.innerHTML = iconSvg(editGoalIcon);
+}
+
+function openEditGoalModal(id){
+  const g = goals.find(g => g.id === id);
+  if(!g) return;
+  editGoalId = id;
+  editGoalIcon = g.icon;
+  editGoalColorIndex = g.paletteIndex % GOAL_PALETTE.length;
+  document.getElementById('editGoalName').textContent = g.name;
+  document.getElementById('editGoalAmount').value = g.amount.toLocaleString('en-GB');
+  updateEditGoalIconPreview();
+  highlightEditIconPicker();
+  highlightEditColorPicker();
+  openModal('editGoalModalOverlay');
+}
+
+document.getElementById('editGoalSaveBtn').addEventListener('click', () => {
+  const amount = getNum('editGoalAmount');
+  if(isNaN(amount) || amount <= 0){ document.getElementById('editGoalAmount').focus(); return; }
+  const g = goals.find(g => g.id === editGoalId);
+  if(!g) return;
+  g.amount = amount;
+  g.icon = editGoalIcon;
+  g.paletteIndex = editGoalColorIndex;
+  renderGoals();
+  closeModal('editGoalModalOverlay');
+});
+
+renderEditIconPicker();
 
 const GOAL_PALETTE = [
   {bar:'#0e8f6f', light:'#e4f5f0'},
   {bar:'#e8823a', light:'#fbe9dc'},
   {bar:'#c9a227', light:'#f7ecd0'},
   {bar:'#c1503f', light:'#f6e1de'},
-  {bar:'#3f6fd1', light:'#e2e9fb'}
+  {bar:'#3f6fd1', light:'#e2e9fb'},
+  {bar:'#8a4fd1', light:'#ece2fb'},
+  {bar:'#d1479f', light:'#fbe2f2'},
+  {bar:'#4a9db0', light:'#e0f0f3'}
 ];
 function hexToRgba(hex, alpha){
   const h = hex.replace('#','');
@@ -2267,33 +2642,21 @@ function monthsFromNow(targetDate){
   return Math.max(0, months);
 }
 
-// How many times the bonus month occurs between now (inclusive) and now+monthsElapsed (inclusive)
-function bonusOccurrences(monthsElapsed, bonusMonth){
-  if(!bonusMonth) return 0;
+// Total planned savings pot at a given number of months from now. Anchored the same way as
+// actualPotAtMonths: month 0 already includes everything planned for the current month (matching
+// "Planned to date" in Tracking), so planned-pace and actual-pace projections start from the same
+// baseline and don't disagree just because of how "now" is defined.
+function plannedPotAtMonths(monthsElapsed){
+  const startingLump = getNum('startingSavings') || 0;
+  const baseline = startingLump + sumPlannedThroughCurrentMonth();
+  if(monthsElapsed <= 0) return baseline;
   const now = new Date();
-  let count = 0;
-  for(let i=0;i<=monthsElapsed;i++){
+  let pot = baseline;
+  for(let i=1;i<=monthsElapsed;i++){
     const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
-    if(d.getMonth()+1 === bonusMonth) count++;
+    pot += plannedSavingsForMonth(d.getMonth()+1);
   }
-  return count;
-}
-
-// Returns the effective bonus amount/month, or zero/none if the toggle is off
-function getBonusSavingsInputs(){
-  const enabled = document.getElementById('bonusSavingsEnabled').checked;
-  return {
-    amount: enabled ? (getNum('annualBonusSavings') || 0) : 0,
-    month: enabled ? (+document.getElementById('bonusSavingsMonth').value || null) : null
-  };
-}
-
-// Total accumulated savings pot at a given number of months from now
-function accumulatedSavingsAtMonths(monthsElapsed){
-  const start = getNum('startingSavings') || 0;
-  const monthly = getNum('monthlySavings') || 0;
-  const bonus = getBonusSavingsInputs();
-  return start + monthly*monthsElapsed + bonus.amount*bonusOccurrences(monthsElapsed, bonus.month);
+  return pot;
 }
 
 // Generic: finds the month count at which potFn(months) first reaches targetAmount (null if unreachable within 50 years)
@@ -2309,25 +2672,31 @@ function findMonthsToReach(targetAmount, potFn){
 
 // Returns { saved:[...], completionMonths:[...] } arrays parallel to `goals`, given the mode
 function computeGoalAllocations(monthsElapsed){
+  const startingLump = getNum('startingSavings') || 0;
+
   if(goals.length <= 1 || allocationMode === 'split'){
     const n = Math.max(goals.length, 1);
-    const startTotal = getNum('startingSavings') || 0;
-    const bonus = getBonusSavingsInputs();
-    const bonusAmt = bonus.amount / n;
-    const bonusMonth = bonus.month;
+    const totalMonthlyPlanned = goals.length > 1 ? Object.values(splitAllocations).reduce((s,v)=>s+(v||0),0) : (getNum('monthlySavings') || 0);
+    const totalStartPlanned = goals.length > 1 ? Object.values(splitStartAllocations).reduce((s,v)=>s+(v||0),0) : startingLump;
     const saved = [];
     const completionMonths = [];
     goals.forEach(g => {
       const monthlyShare = goals.length > 1 ? (splitAllocations[g.id] || 0) : (getNum('monthlySavings') || 0);
-      const start = goals.length > 1 ? (splitStartAllocations[g.id] || 0) : startTotal;
-      const potFn = m => start + monthlyShare*m + bonusAmt*bonusOccurrences(m, bonusMonth);
+      const startShare = goals.length > 1 ? (splitStartAllocations[g.id] || 0) : startingLump;
+      const monthlyFrac = totalMonthlyPlanned > 0 ? monthlyShare/totalMonthlyPlanned : (1/n);
+      const startFrac = totalStartPlanned > 0 ? startShare/totalStartPlanned : (1/n);
+      const potFn = m => {
+        const totalPotM = plannedPotAtMonths(m);
+        const monthlyAccM = Math.max(totalPotM - startingLump, 0);
+        return startFrac*startingLump + monthlyFrac*monthlyAccM;
+      };
       saved.push(Math.min(potFn(monthsElapsed), g.amount));
       completionMonths.push(findMonthsToReach(g.amount, potFn));
     });
     return {saved, completionMonths};
   }
   // sequential: fully fund goals in the order they were added
-  const totalAtMonths = m => accumulatedSavingsAtMonths(m);
+  const totalAtMonths = m => plannedPotAtMonths(m);
   let remaining = totalAtMonths(monthsElapsed);
   const saved = [];
   goals.forEach(g => {
@@ -2387,6 +2756,8 @@ function renderGoals(){
     }
     const plannedLabel = labelFor(plannedCompletionArr[idx]);
     const actualLabel = labelFor(actualCompletionArr[idx]);
+    const actualPaceIsEstimated = !hasAnyActualLogged();
+    const actualPaceSub = actualPaceIsEstimated ? '<div class="m-sub">estimated from your plan \u2014 log savings in Tracking for a real figure</div>' : '';
 
     const isFirst = idx === 0;
     const isLast = idx === goals.length - 1;
@@ -2406,6 +2777,9 @@ function renderGoals(){
         ${reorderControls}
         <div class="icon-circle-white">${iconSvg(g.icon)}</div>
         <h3>${g.name} Progress</h3>
+        <button class="edit-goal-panel" data-id="${g.id}" title="Edit goal" aria-label="Edit goal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
         <button class="rm-goal-panel" data-id="${g.id}" title="Remove goal">&times;</button>
       </div>
       <div class="goal-panel-body">
@@ -2422,7 +2796,7 @@ function renderGoals(){
           <div class="modal-stat"><div class="m-label">Remaining</div><div class="m-value" style="color:${hexToRgba(palette.bar, 0.55)};">${fmt(remaining)}</div></div>
           <div class="modal-stat"><div class="m-label">Status</div><div class="m-value" style="color:${isComplete ? 'var(--teal-dark)' : 'var(--text)'};">${isComplete ? 'Complete' : 'Incomplete'}</div></div>
           <div class="modal-stat"><div class="m-label">Completion (planned pace)</div><div class="m-value" style="font-size:15px;">${plannedLabel}</div></div>
-          <div class="modal-stat"><div class="m-label">Completion (actual pace)</div><div class="m-value" style="font-size:15px;">${actualLabel}</div></div>
+          <div class="modal-stat"><div class="m-label">Completion (actual pace)</div><div class="m-value" style="font-size:15px;">${actualLabel}</div>${actualPaceSub}</div>
         </div>
       </div>
     </div>`;
@@ -2457,7 +2831,22 @@ function renderGoals(){
       e.stopPropagation();
       const id = +btn.dataset.id;
       goals = goals.filter(g => g.id !== id);
+      if(goals.length === 0){
+        trackingActuals = {};
+        trackingStartYear = null;
+        trackingStartMonth = null;
+        trackingWindowMonths = 36;
+        renderTrackingTable();
+      }
       renderGoals();
+    });
+  });
+
+  grid.querySelectorAll('.edit-goal-panel').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = +btn.dataset.id;
+      openEditGoalModal(id);
     });
   });
 
@@ -2487,6 +2876,15 @@ function moveGoal(id, dir){
 function fmtSigned(n){
   const sign = n < 0 ? '-' : '+';
   return sign + '£' + Math.round(Math.abs(n)).toLocaleString('en-GB');
+}
+
+// Returns the effective bonus amount/month, or zero/none if the toggle is off
+function getBonusSavingsInputs(){
+  const enabled = document.getElementById('bonusSavingsEnabled').checked;
+  return {
+    amount: enabled ? (getNum('annualBonusSavings') || 0) : 0,
+    month: enabled ? (+document.getElementById('bonusSavingsMonth').value || null) : null
+  };
 }
 
 function plannedSavingsForMonth(month){
@@ -2521,8 +2919,28 @@ function sumActualThroughCurrentMonth(){
   return sum;
 }
 
+// True if the user has logged at least one real actual-savings entry from tracking start
+// through the current real month (inclusive).
+function hasAnyActualLogged(){
+  ensureTrackingStart();
+  const now = new Date();
+  const nowKey = new Date(now.getFullYear(), now.getMonth(), 1);
+  let d = new Date(trackingStartYear, trackingStartMonth - 1, 1);
+  while(d <= nowKey){
+    const v = trackingActuals[trackingKey(d.getFullYear(), d.getMonth()+1)];
+    if(v !== undefined && v !== null && v !== '') return true;
+    d = new Date(d.getFullYear(), d.getMonth()+1, 1);
+  }
+  return false;
+}
+
 function averageActualMonthlyRate(){
   ensureTrackingStart();
+  // No tracking history logged yet — fall back to the planned monthly savings rate so
+  // "actual pace" projections have something sensible to work with, rather than assuming £0.
+  if(!hasAnyActualLogged()){
+    return getNum('monthlySavings') || 0;
+  }
   const now = new Date();
   const elapsed = (now.getFullYear()-trackingStartYear)*12 + (now.getMonth()-(trackingStartMonth-1)) + 1;
   const sum = sumActualThroughCurrentMonth();
@@ -2545,19 +2963,25 @@ function sumPlannedThroughCurrentMonth(){
 
 // Total actual-based pot (starting savings + real logged monthly amounts), at `monthsElapsed`
 // months from now. For the past/present (<=0) this is purely real data. For the future,
-// it extrapolates using an explicit pre-planned entry if present, otherwise the average
-// actual monthly rate observed so far.
+// it extrapolates using an explicit logged entry if present for that month; otherwise it uses
+// the average actual monthly rate observed so far, plus the recurring bonus in its scheduled
+// month (the bonus is a known future event, not something to derive from past averages).
 function actualPotAtMonths(monthsElapsed){
   const startingLump = getNum('startingSavings') || 0;
   const baseline = startingLump + sumActualThroughCurrentMonth();
   if(monthsElapsed <= 0) return baseline;
   const avgRate = averageActualMonthlyRate();
+  const bonus = getBonusSavingsInputs();
   const now = new Date();
   let pot = baseline;
   for(let i=1;i<=monthsElapsed;i++){
     const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
     const override = trackingActuals[trackingKey(d.getFullYear(), d.getMonth()+1)];
-    pot += (override !== undefined && override !== null && override !== '') ? (+override || 0) : avgRate;
+    if(override !== undefined && override !== null && override !== ''){
+      pot += (+override || 0);
+    } else {
+      pot += avgRate + (bonus.month === (d.getMonth()+1) ? bonus.amount : 0);
+    }
   }
   return pot;
 }
@@ -2663,6 +3087,7 @@ function renderTrackingTable(){
         </div>
       </td>
       <td class="col-variance"></td>
+      <td class="col-milestone"><div class="milestone-cell"></div></td>
     `;
     tbody.appendChild(tr);
     d = new Date(d.getFullYear(), d.getMonth()+1, 1);
@@ -2685,6 +3110,25 @@ function renderTrackingTable(){
   injectClearButtons(tbody);
 
   updateTrackingDynamic();
+}
+
+// Maps "y-m" tracking keys to the goal(s) whose actual-pace projection completes that month.
+// Uses computeGoalAllocationsActual's completionMonths, which are anchored to "now" regardless
+// of the monthsElapsed argument passed in, so 0 is fine here as a throwaway view date.
+function getActualCompletionsByMonth(){
+  const map = {};
+  if(!goals.length) return map;
+  const { completionMonths } = computeGoalAllocationsActual(0);
+  const now = new Date();
+  goals.forEach((g, idx) => {
+    const months = completionMonths[idx];
+    if(months === null || months === undefined) return;
+    const d = new Date(now.getFullYear(), now.getMonth()+months, 1);
+    const key = trackingKey(d.getFullYear(), d.getMonth()+1);
+    if(!map[key]) map[key] = [];
+    map[key].push(g);
+  });
+  return map;
 }
 
 // Refreshes summary stats, the banner, and the per-row Projected/Projected Total/Variance
@@ -2723,6 +3167,8 @@ function updateTrackingDynamic(){
   }
 
   const tbody = document.getElementById('trackingTableBody');
+  const milestoneMap = getActualCompletionsByMonth();
+  const nowKeyForMilestones = trackingKey(now.getFullYear(), now.getMonth()+1);
   let cumProjected = startingLump;
   let d = new Date(trackingStartYear, trackingStartMonth - 1, 1);
   for(let i=0;i<trackingWindowMonths;i++){
@@ -2743,6 +3189,30 @@ function updateTrackingDynamic(){
       const varCell = row.querySelector('.col-variance');
       varCell.textContent = varianceText;
       varCell.style.color = varianceColor;
+
+      const completedGoals = milestoneMap[key] || [];
+      const milestoneCell = row.querySelector('.milestone-cell');
+      if(completedGoals.length){
+        milestoneCell.innerHTML = completedGoals.map(g => {
+          const palette = GOAL_PALETTE[g.paletteIndex % GOAL_PALETTE.length];
+          return `<span class="tracking-goal-badge" style="background:${palette.bar};">${iconSvg(g.icon)}${g.name}</span>`;
+        }).join('');
+        if(completedGoals.length === 1){
+          const palette = GOAL_PALETTE[completedGoals[0].paletteIndex % GOAL_PALETTE.length];
+          row.style.background = hexToRgba(palette.bar, 0.12);
+        } else {
+          const share = 100/completedGoals.length;
+          const stops = completedGoals.map((g, gi) => {
+            const palette = GOAL_PALETTE[g.paletteIndex % GOAL_PALETTE.length];
+            const from = Math.round(gi*share), to = Math.round((gi+1)*share);
+            return `${hexToRgba(palette.bar, 0.16)} ${from}%, ${hexToRgba(palette.bar, 0.16)} ${to}%`;
+          }).join(', ');
+          row.style.background = `linear-gradient(90deg, ${stops})`;
+        }
+      } else {
+        milestoneCell.innerHTML = '';
+        row.style.background = (key === nowKeyForMilestones) ? 'var(--teal-pale)' : '';
+      }
 
       const inp = row.querySelector('input[data-key]');
       if(inp && document.activeElement !== inp){
@@ -2895,26 +3365,255 @@ document.getElementById('todayDateDisplay').value = new Date().toLocaleDateStrin
 
 renderGoalSuggestions();
 renderIconPicker();
+renderGoalColorPicker();
+renderEditColorPicker();
 populateViewAsOfSelects();
 renderTrackingTable();
 renderGoals();
 
-// ---- Sidebar view switching (Dashboard vs Savings) ----
-const dashboardMain = document.querySelector('.main:not(#savingsView)');
+// ---- Sidebar view switching (Mortgage Overpayment / Mortgage Calculator / Savings) ----
+const overpayMain = document.getElementById('overpayView');
+const calculatorMain = document.getElementById('calculatorView');
 const savingsMain = document.getElementById('savingsView');
-const navDashboardBtn = document.getElementById('navDashboard');
+const navMortgageToggle = document.getElementById('navMortgageToggle');
+const mortgageSubmenu = document.getElementById('mortgageSubmenu');
+const navMortgageCalcBtn = document.getElementById('navMortgageCalc');
+const navMortgageOverpayBtn = document.getElementById('navMortgageOverpay');
 const navSavingsBtn = document.getElementById('navSavings');
 
 function showView(view){
-  const isDashboard = view === 'dashboard';
-  dashboardMain.style.display = isDashboard ? '' : 'none';
-  savingsMain.style.display = isDashboard ? 'none' : 'flex';
-  navDashboardBtn.classList.toggle('active', isDashboard);
-  navSavingsBtn.classList.toggle('active', !isDashboard);
+  overpayMain.style.display = view === 'overpay' ? '' : 'none';
+  calculatorMain.style.display = view === 'calculator' ? 'flex' : 'none';
+  savingsMain.style.display = view === 'savings' ? 'flex' : 'none';
+
+  const isMortgage = view === 'overpay' || view === 'calculator';
+  navMortgageToggle.classList.toggle('active', isMortgage);
+  navSavingsBtn.classList.toggle('active', view === 'savings');
+  navMortgageOverpayBtn.classList.toggle('active', view === 'overpay');
+  navMortgageCalcBtn.classList.toggle('active', view === 'calculator');
+
+  if(isMortgage) openMortgageSubmenu();
+  if(view === 'calculator') calcRecalc();
 }
 
-navDashboardBtn.addEventListener('click', () => showView('dashboard'));
-navSavingsBtn.addEventListener('click', () => showView('savings'));
+function openMortgageSubmenu(){
+  mortgageSubmenu.classList.add('open');
+  navMortgageToggle.setAttribute('aria-expanded', 'true');
+}
+function closeMortgageSubmenu(){
+  mortgageSubmenu.classList.remove('open');
+  navMortgageToggle.setAttribute('aria-expanded', 'false');
+}
+navMortgageToggle.addEventListener('click', () => {
+  if(mortgageSubmenu.classList.contains('open')) closeMortgageSubmenu();
+  else openMortgageSubmenu();
+});
+navMortgageCalcBtn.addEventListener('click', () => { showView('calculator'); closeSidebar(); });
+navMortgageOverpayBtn.addEventListener('click', () => { showView('overpay'); closeSidebar(); });
+navSavingsBtn.addEventListener('click', () => { showView('savings'); closeSidebar(); });
+
+// ---- Mortgage Calculator (standalone) ----
+
+// Deposit £ / % toggle — converts the current amount so switching modes doesn't lose the value
+const depositModeSwitch = document.getElementById('calcDepositIsPercent');
+depositModeSwitch.addEventListener('change', () => {
+  const propertyValue = getNum('calcPropertyValue') || 0;
+  const isPercent = depositModeSwitch.checked;
+  if(isPercent){
+    const currentValue = getNum('calcDepositValue') || 0;
+    const pct = propertyValue > 0 ? (currentValue/propertyValue*100) : 0;
+    document.getElementById('calcDepositPct').value = pct ? (Math.round(pct*10)/10) : '';
+  } else {
+    const currentPct = getNum('calcDepositPct') || 0;
+    const val = propertyValue * currentPct/100;
+    document.getElementById('calcDepositValue').value = val ? Math.round(val).toLocaleString('en-GB') : '';
+  }
+  document.getElementById('calcDepositValueWrap').style.display = isPercent ? 'none' : 'block';
+  document.getElementById('calcDepositPctWrap').style.display = isPercent ? 'block' : 'none';
+  calcRecalc();
+});
+
+function calcGetDepositAmount(propertyValue){
+  if(depositModeSwitch.checked){
+    const pct = getNum('calcDepositPct');
+    return isNaN(pct) ? NaN : propertyValue * pct/100;
+  }
+  return getNum('calcDepositValue');
+}
+
+// UK SDLT (England & Northern Ireland) residential rate bands, effective from April 2025.
+// Each entry: [lowerBound, upperBound, rate]. upperBound of Infinity for the top band.
+const SDLT_BANDS = {
+  next: [
+    [0, 125000, 0.00],
+    [125000, 250000, 0.02],
+    [250000, 925000, 0.05],
+    [925000, 1500000, 0.10],
+    [1500000, Infinity, 0.12]
+  ],
+  additional: [
+    [0, 125000, 0.05],
+    [125000, 250000, 0.07],
+    [250000, 925000, 0.10],
+    [925000, 1500000, 0.15],
+    [1500000, Infinity, 0.17]
+  ],
+  firstTimeBuyer: [
+    [0, 300000, 0.00],
+    [300000, 500000, 0.05]
+  ]
+};
+
+// Returns {tax, breakdown:[{from, to, rate, amount}]}. First-time buyer relief only applies
+// up to £500,000 — above that, standard "next home" rates apply to the whole price.
+function calculateStampDuty(price, buyerType){
+  let bands;
+  if(buyerType === 'first'){
+    bands = price <= 500000 ? SDLT_BANDS.firstTimeBuyer : SDLT_BANDS.next;
+  } else if(buyerType === 'additional'){
+    bands = SDLT_BANDS.additional;
+  } else {
+    bands = SDLT_BANDS.next;
+  }
+
+  let tax = 0;
+  const breakdown = [];
+  bands.forEach(([lower, upper, rate]) => {
+    if(price > lower){
+      const taxable = Math.min(price, upper) - lower;
+      const amount = taxable * rate;
+      tax += amount;
+      if(taxable > 0){
+        breakdown.push({from: lower, to: Math.min(price, upper), rate, amount});
+      }
+    }
+  });
+  return {tax, breakdown};
+}
+
+function calcRecalc(){
+  const propertyValue = getNum('calcPropertyValue');
+  const rate = getNum('calcRate');
+  const term = getNum('calcTerm');
+  const deposit = calcGetDepositAmount(propertyValue || 0);
+  const loanAmount = (!isNaN(propertyValue) && !isNaN(deposit)) ? Math.max(propertyValue - deposit, 0) : NaN;
+
+  document.getElementById('calcLoanAmountDisplay').value = !isNaN(loanAmount) ? fmt(loanAmount) : '';
+
+  const valid = !isNaN(loanAmount) && loanAmount > 0 && !isNaN(rate) && rate >= 0 && !isNaN(term) && term > 0;
+
+  document.getElementById('calcEmptyNote').style.display = valid ? 'none' : 'block';
+
+  if(!valid){
+    document.getElementById('calcMonthlyPayment').textContent = '--';
+    document.getElementById('calcTotalRepaid').textContent = '--';
+    document.getElementById('calcTotalInterest').textContent = '--';
+  } else {
+    const months = Math.round(term*12);
+    const payment = monthlyPayment(loanAmount, rate, months);
+    const totalRepaid = payment*months;
+    const totalInterest = totalRepaid - loanAmount;
+
+    document.getElementById('calcMonthlyPayment').textContent = fmt(payment);
+    document.getElementById('calcTotalRepaid').textContent = fmt(totalRepaid);
+    document.getElementById('calcTotalInterest').textContent = fmt(totalInterest);
+  }
+
+  // Stamp duty depends only on property value & buyer type, so it's shown even if the
+  // loan details above aren't fully filled in yet.
+  const buyerType = document.getElementById('calcBuyerType').value;
+  const breakdownWrap = document.getElementById('calcStampDutyBreakdownWrap');
+  const breakdownBody = document.getElementById('calcStampDutyTableBody');
+  if(!isNaN(propertyValue) && propertyValue > 0){
+    const {tax, breakdown} = calculateStampDuty(propertyValue, buyerType);
+    document.getElementById('calcStampDuty').textContent = fmt(tax);
+    const subLabel = buyerType === 'first' ? 'first-time buyer relief applied' : (buyerType === 'additional' ? 'includes 5% additional property surcharge' : 'standard residential rates');
+    document.getElementById('calcStampDutySub').textContent = subLabel;
+    breakdownBody.innerHTML = breakdown.map(b => `<tr><td>${fmt(b.from)} \u2013 ${fmt(b.to)}</td><td>${Math.round(b.rate*1000)/10}%</td><td>${fmt(b.amount)}</td></tr>`).join('');
+    breakdownWrap.style.display = breakdown.length ? 'block' : 'none';
+  } else {
+    document.getElementById('calcStampDuty').textContent = '--';
+    document.getElementById('calcStampDutySub').textContent = 'enter a property value above';
+    breakdownWrap.style.display = 'none';
+  }
+}
+document.querySelectorAll('#calculatorView input, #calculatorView select').forEach(inp => {
+  inp.addEventListener('input', calcRecalc);
+  inp.addEventListener('change', calcRecalc);
+});
+
+// ---- Sidebar open/close (off-canvas overlay) ----
+const sidebarEl = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+
+function openSidebar(){
+  sidebarEl.classList.add('open');
+  sidebarBackdrop.classList.add('open');
+  hamburgerBtn.setAttribute('aria-label', 'Close menu');
+  hamburgerBtn.title = 'Close menu';
+}
+function closeSidebar(){
+  sidebarEl.classList.remove('open');
+  sidebarBackdrop.classList.remove('open');
+  hamburgerBtn.setAttribute('aria-label', 'Open menu');
+  hamburgerBtn.title = 'Open menu';
+}
+hamburgerBtn.addEventListener('click', () => {
+  if(sidebarEl.classList.contains('open')) closeSidebar(); else openSidebar();
+});
+sidebarCloseBtn.addEventListener('click', closeSidebar);
+sidebarBackdrop.addEventListener('click', closeSidebar);
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeSidebar();
+});
+
+</script>
+<script>
+(function(){
+  const root = document.documentElement;
+  const sunIcon = document.getElementById('themeIconSun');
+  const moonIcon = document.getElementById('themeIconMoon');
+  const toggleBtn = document.getElementById('themeToggleBtn');
+  const STORAGE_KEY = 'mortgageDashboardTheme';
+
+  function applyTheme(theme){
+    if(theme === 'dark'){
+      root.setAttribute('data-theme','dark');
+      sunIcon.style.display = 'none';
+      moonIcon.style.display = '';
+    } else {
+      root.removeAttribute('data-theme');
+      sunIcon.style.display = '';
+      moonIcon.style.display = 'none';
+    }
+  }
+
+  function getInitialTheme(){
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved === 'dark' || saved === 'light') return saved;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  let currentTheme = getInitialTheme();
+  applyTheme(currentTheme);
+
+  toggleBtn.addEventListener('click', () => {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(STORAGE_KEY, currentTheme);
+    applyTheme(currentTheme);
+  });
+
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if(!localStorage.getItem(STORAGE_KEY)){
+        currentTheme = e.matches ? 'dark' : 'light';
+        applyTheme(currentTheme);
+      }
+    });
+  }
+})();
 </script>
 </body>
 </html>

@@ -176,6 +176,8 @@
   .btn-primary:hover{opacity:.9;}
   .btn-ghost{background:var(--panel);color:var(--text);border:1px solid var(--line);}
   .btn-ghost:hover{background:var(--hover-bg);}
+  .btn-cancel{background:var(--panel);color:var(--red);border:1px solid var(--red);opacity:.75;}
+  .btn-cancel:hover{background:var(--red);color:#fff;opacity:1;}
 
   /* Stat row */
   .stat-row{display:flex;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
@@ -521,6 +523,46 @@
 .overview-hide-btn:hover{color:var(--red);background:var(--hover-bg);}
 .overview-placeholder{text-align:center;padding:14px 4px;}
 .overview-placeholder p{font-size:12.5px;color:var(--muted);margin:0 0 12px;}
+
+/* ---- Budget tab ---- */
+.budget-progress-track{height:8px;border-radius:4px;background:var(--track-bg);overflow:hidden;}
+.budget-progress-fill{height:100%;background:var(--teal);width:0%;transition:width .2s ease;border-radius:4px;}
+.budget-progress-track.over .budget-progress-fill{background:var(--red);}
+.link-btn{background:none;border:none;color:var(--teal-dark);font-weight:700;font-size:13.5px;cursor:pointer;padding:0;display:flex;align-items:center;gap:2px;}
+.link-btn:hover{opacity:.8;}
+.budget-cat-row{display:flex;align-items:center;gap:14px;padding:14px 6px;width:100%;background:none;border:none;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;font-family:inherit;color:var(--text);}
+.budget-cat-row:last-child{border-bottom:none;}
+.budget-cat-row:hover{background:var(--hover-bg);}
+.budget-cat-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--hover-bg);}
+.budget-cat-icon svg{width:18px;height:18px;}
+.budget-cat-icon.add{color:var(--teal-dark);font-size:20px;font-weight:700;background:var(--teal-pale);}
+[data-theme="dark"] .budget-cat-icon.add{color:var(--banner-text);}
+.budget-cat-info{flex:1;min-width:0;}
+.budget-cat-name{font-weight:700;font-size:13.5px;display:block;}
+.budget-cat-avg{font-size:11.5px;color:var(--muted);margin-top:2px;display:block;}
+.budget-cat-amount-field{flex-shrink:0;width:118px;}
+.budget-cat-manage-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--input-bg);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.budget-cat-manage-btn:hover{border-color:var(--teal);color:var(--teal-dark);}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;}
+.budget-overview-panel{position:relative;display:flex;align-items:center;gap:32px;flex-wrap:wrap;padding:26px 24px;}
+.budget-overview-edit-btn{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;}
+.budget-overview-edit-btn svg{width:16px;height:16px;}
+.budget-overview-edit-btn:hover{background:var(--hover-bg);color:var(--teal-dark);border-color:var(--teal);}
+.budget-donut-wrap{position:relative;width:180px;height:180px;flex-shrink:0;cursor:pointer;margin:0 auto;}
+.budget-donut-wrap:hover canvas{filter:brightness(0.96);}
+.budget-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center;}
+.budget-donut-center-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+.budget-donut-center-pct{font-size:24px;font-weight:800;color:var(--text);}
+.budget-overview-stats{flex:1;min-width:220px;display:flex;flex-direction:column;gap:14px;}
+.budget-overview-stat-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;}
+.budget-overview-stat-row span:first-child{color:var(--muted);}
+.budget-overview-stat-row span:last-child{font-weight:700;font-size:15px;}
+.budget-legend-row{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);}
+.budget-legend-row:last-child{border-bottom:none;}
+.budget-legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.budget-legend-name{flex:1;font-size:13.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.budget-legend-pct{font-size:12.5px;color:var(--muted);width:44px;text-align:right;flex-shrink:0;}
+.budget-legend-amount{font-size:13.5px;font-weight:700;width:84px;text-align:right;flex-shrink:0;}
 .overview-stat-row{display:flex;flex-wrap:wrap;gap:16px;}
 .overview-stat{flex:1;min-width:100px;}
 .overview-stat .lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px;}
@@ -604,6 +646,10 @@
     <button class="nav-item" title="Savings Goals" id="navSavings">
       <svg viewBox="0 0 24 24"><text x="12" y="18.5" text-anchor="middle" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="20" font-weight="700" fill="currentColor">£</text></svg>
       <span class="nav-label">Savings Goals</span>
+    </button>
+    <button class="nav-item" title="Budget" id="navBudget">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 14h.01M12 14h4"/></svg>
+      <span class="nav-label">Budget</span>
     </button>
   </nav>
   <div class="spacer"></div>
@@ -1236,6 +1282,148 @@
           </table>
         </div>
         <button class="add-link" id="trackingShowMoreBtn" style="margin-top:12px;">+ Show 12 more months</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="budgetView" style="display:none;">
+  <div class="content" style="max-width:900px;">
+
+    <div id="budgetEmptyState">
+      <header class="top">
+        <div>
+          <h1>Budget</h1>
+          <p>Set a monthly budget so you can track your day to day spending by category.</p>
+        </div>
+      </header>
+      <div class="overview-placeholder" style="padding:70px 20px;">
+        <p>You haven't set up a budget yet.</p>
+        <button type="button" class="btn btn-primary" id="setupBudgetBtn">+ Set up budget</button>
+      </div>
+    </div>
+
+    <div id="budgetIncomeStep" style="display:none;max-width:420px;margin:30px auto 0;">
+      <h1 style="font-size:21px;margin-bottom:8px;">What is your monthly income?</h1>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 22px;">This helps us work out how much you have left to allocate across your categories.</p>
+      <div class="field" style="margin-bottom:22px;">
+        <label>Monthly income</label>
+        <div class="prefix-wrap"><span class="prefix">£</span><input type="text" inputmode="numeric" id="budgetIncomeInput" placeholder="e.g. 2,000" data-money="1"></div>
+      </div>
+      <button type="button" class="btn btn-primary" id="budgetIncomeContinueBtn" style="width:100%;">Continue</button>
+      <button type="button" class="btn btn-cancel" id="budgetIncomeCancelBtn" style="width:100%;margin-top:10px;">Cancel</button>
+    </div>
+
+    <div id="budgetCategoriesStep" style="display:none;">
+      <header class="top">
+        <div>
+          <h1>Select how much you want to spend on each category</h1>
+          <p>Category budgets will help you track your day to day spending</p>
+        </div>
+        <div class="top-actions">
+          <button type="button" class="btn btn-cancel" id="budgetCancelBtn">Cancel</button>
+          <button type="button" class="btn btn-ghost" id="budgetClearBtn">Clear</button>
+          <button type="button" class="btn btn-primary" id="budgetContinueBtn">Continue</button>
+        </div>
+      </header>
+
+      <div class="panel" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;">
+          <span style="font-size:13.5px;font-weight:700;" id="budgetPctSet">0% set</span>
+          <span style="font-size:13.5px;font-weight:700;" id="budgetAllocatedTotal">£0.00/£0.00</span>
+        </div>
+        <div class="budget-progress-track"><div class="budget-progress-fill" id="budgetProgressFill"></div></div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:10px;" id="budgetLeftToAllocate">£0.00 left to allocate</div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h2 style="font-size:15px;font-weight:700;margin:0;">Categories</h2>
+        <button type="button" class="link-btn" id="manageCategoriesBtn">Manage ›</button>
+      </div>
+
+      <div class="panel" style="padding:6px 10px;margin-bottom:24px;">
+        <button type="button" class="budget-cat-row" id="addNewCategoryBtn">
+          <span class="budget-cat-icon add">+</span>
+          <span class="budget-cat-info"><span class="budget-cat-name">Add new category</span></span>
+        </button>
+        <div id="budgetCategoryList"></div>
+      </div>
+    </div>
+
+    <div id="budgetOverviewState" style="display:none;">
+      <header class="top">
+        <div>
+          <h1>Budget</h1>
+          <p id="budgetOverviewSubtitle">Here's how your monthly income is allocated.</p>
+        </div>
+      </header>
+
+      <div class="panel budget-overview-panel">
+        <button type="button" class="budget-overview-edit-btn" id="editBudgetBtn" aria-label="Edit budget" title="Edit budget">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+        <div class="budget-donut-wrap" id="budgetDonutWrap" role="button" tabindex="0" aria-label="View budget breakdown">
+          <canvas id="budgetDonutCanvas" width="200" height="200"></canvas>
+          <div class="budget-donut-center">
+            <span class="budget-donut-center-label">Allocated</span>
+            <span class="budget-donut-center-pct" id="budgetDonutCenterPct">0%</span>
+          </div>
+        </div>
+        <div class="budget-overview-stats">
+          <div class="budget-overview-stat-row">
+            <span>Monthly income</span>
+            <span id="budgetOverviewIncome">£0.00</span>
+          </div>
+          <div class="budget-overview-stat-row">
+            <span>Allocated</span>
+            <span id="budgetOverviewAllocated">£0.00</span>
+          </div>
+          <div class="budget-overview-stat-row">
+            <span id="budgetOverviewRemainingLabel">Left to allocate</span>
+            <span id="budgetOverviewRemaining">£0.00</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px;">Tap the chart for a full breakdown</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Budget breakdown modal (percentage breakdown + colour key) -->
+<div class="modal-overlay" id="budgetBreakdownModalOverlay">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-main" style="flex:1;">
+      <div class="modal-header">
+        <h2>Budget breakdown</h2>
+        <button class="modal-close" data-close="budgetBreakdownModalOverlay" aria-label="Close">&times;</button>
+      </div>
+      <div id="budgetBreakdownList"></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="budgetCategoryModalOverlay">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-main" style="flex:1;">
+      <div class="modal-header">
+        <h2 id="budgetCategoryModalTitle">Add a category</h2>
+        <button class="modal-close" data-close="budgetCategoryModalOverlay" aria-label="Close">&times;</button>
+      </div>
+      <div id="budgetCategorySuggestionsWrap" style="margin-bottom:18px;">
+        <label style="font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:8px;">Suggestions</label>
+        <div class="goal-suggestions" id="budgetCategorySuggestions" style="grid-template-columns:repeat(4,1fr);"></div>
+      </div>
+      <div class="field" style="margin-bottom:18px;">
+        <label>Category name</label>
+        <input type="text" id="budgetCategoryNameInput" placeholder="e.g. Groceries">
+      </div>
+      <div class="field" style="margin-bottom:8px;">
+        <label>Icon</label>
+        <div class="icon-picker-grid" id="budgetIconPickerGrid" style="grid-template-columns:repeat(8,1fr);"></div>
+      </div>
+      <div class="modal-actions" style="margin-top:18px;">
+        <button type="button" class="btn btn-ghost" id="budgetCategoryDeleteBtn" style="display:none;">Delete</button>
+        <button type="button" class="btn btn-primary" id="budgetCategorySaveBtn">Save</button>
       </div>
     </div>
   </div>
@@ -2478,7 +2666,16 @@ const GOAL_ICONS = {
   laptop: '<rect x="4" y="4" width="16" height="10" rx="1"/><path d="M2 18h20"/>',
   camera: '<path d="M4 8h3l2-2h6l2 2h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
   paw: '<circle cx="6" cy="9" r="1.8"/><circle cx="10" cy="6" r="1.8"/><circle cx="14" cy="6" r="1.8"/><circle cx="18" cy="9" r="1.8"/><path d="M8 14c0-2 2-3 4-3s4 1 4 3c0 2.5-2 4-4 4s-4-1.5-4-4z"/>',
-  umbrella: '<path d="M12 2a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 11v8a2 2 0 0 1-4 0"/>'
+  umbrella: '<path d="M12 2a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 11v8a2 2 0 0 1-4 0"/>',
+  bolt: '<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/>',
+  cart: '<circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/><path d="M3 4h2l2.4 11.5a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/>',
+  utensils: '<path d="M6 2v7a2 2 0 0 0 2 2v11"/><path d="M6 2v7M10 2v7"/><path d="M18 2c-1.5 1-2.5 3-2.5 5.5S16.5 12 18 13v9"/>',
+  bus: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M3 12h18"/><circle cx="7.5" cy="20" r="1.5"/><circle cx="16.5" cy="20" r="1.5"/>',
+  film: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M17 9h4M3 15h4M17 15h4"/>',
+  tshirt: '<path d="M8 3 3 7l3 3 2-1v11h8V9l2 1 3-3-5-4-1 2h-4L8 3z"/>',
+  pulse: '<path d="M3 12h4l2 8 4-16 2 8h6"/>',
+  phone: '<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5c0-1 1-1.8 2.5-1.8s2.5.8 2.5 1.8c0 2.4-5 1.8-5 4.5 0 1 1 1.8 2.5 1.8s2.5-.8 2.5-1.8"/><path d="M12 6v1.5M12 16.5V18"/>'
 };
 function iconSvg(key){
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${GOAL_ICONS[key] || GOAL_ICONS.star}</svg>`;
@@ -3474,29 +3671,34 @@ const overviewMain = document.getElementById('overviewView');
 const overpayMain = document.getElementById('overpayView');
 const calculatorMain = document.getElementById('calculatorView');
 const savingsMain = document.getElementById('savingsView');
+const budgetMain = document.getElementById('budgetView');
 const navOverviewBtn = document.getElementById('navOverview');
 const navMortgageToggle = document.getElementById('navMortgageToggle');
 const mortgageSubmenu = document.getElementById('mortgageSubmenu');
 const navMortgageCalcBtn = document.getElementById('navMortgageCalc');
 const navMortgageOverpayBtn = document.getElementById('navMortgageOverpay');
 const navSavingsBtn = document.getElementById('navSavings');
+const navBudgetBtn = document.getElementById('navBudget');
 
 function showView(view){
   overviewMain.style.display = view === 'overview' ? '' : 'none';
   overpayMain.style.display = view === 'overpay' ? '' : 'none';
   calculatorMain.style.display = view === 'calculator' ? 'flex' : 'none';
   savingsMain.style.display = view === 'savings' ? 'flex' : 'none';
+  budgetMain.style.display = view === 'budget' ? '' : 'none';
 
   const isMortgage = view === 'overpay' || view === 'calculator';
   navOverviewBtn.classList.toggle('active', view === 'overview');
   navMortgageToggle.classList.toggle('active', isMortgage);
   navSavingsBtn.classList.toggle('active', view === 'savings');
+  navBudgetBtn.classList.toggle('active', view === 'budget');
   navMortgageOverpayBtn.classList.toggle('active', view === 'overpay');
   navMortgageCalcBtn.classList.toggle('active', view === 'calculator');
 
   if(isMortgage) openMortgageSubmenu();
   if(view === 'calculator') calcRecalc();
   if(view === 'overview' && typeof renderOverview === 'function') renderOverview();
+  if(view === 'budget' && typeof renderBudget === 'function') renderBudget();
 }
 
 function openMortgageSubmenu(){
@@ -3515,6 +3717,356 @@ navOverviewBtn.addEventListener('click', () => { showView('overview'); closeSide
 navMortgageCalcBtn.addEventListener('click', () => { showView('calculator'); closeSidebar(); });
 navMortgageOverpayBtn.addEventListener('click', () => { showView('overpay'); closeSidebar(); });
 navSavingsBtn.addEventListener('click', () => { showView('savings'); closeSidebar(); });
+navBudgetBtn.addEventListener('click', () => { showView('budget'); closeSidebar(); });
+
+// ---- Budget tab ----
+const BUDGET_LS_KEY = 'mortgageDashboard.budget.v1';
+
+const BUDGET_SUGGESTED_CATEGORIES = [
+  { name: 'Bills',              icon: 'bolt' },
+  { name: 'Groceries',          icon: 'cart' },
+  { name: 'Eating Out',         icon: 'utensils' },
+  { name: 'Transport',          icon: 'bus' },
+  { name: 'Entertainment',      icon: 'film' },
+  { name: 'Shopping',           icon: 'tshirt' },
+  { name: 'Health & Fitness',   icon: 'pulse' },
+  { name: 'Subscriptions',      icon: 'phone' },
+  { name: 'Personal Care',      icon: 'heart' },
+  { name: 'Charity',            icon: 'gift' },
+  { name: 'Savings',            icon: 'piggy' },
+  { name: 'Business',           icon: 'briefcase' },
+  { name: 'Cash',               icon: 'coin' },
+  { name: 'Travel',             icon: 'palm' },
+];
+
+let budgetState = { hasOverview: false, income: 0, categories: [] };
+let budgetUiStep = 'empty'; // 'empty' | 'income' | 'categories' | 'overview'
+let budgetManageMode = false;
+let budgetCategoryDraft = { id: null, name: '', icon: 'star' };
+let budgetIdCounter = 1;
+let budgetDonutChart = null;
+
+const BUDGET_CHART_PALETTE = ['#0e8f6f','#3f6fd1','#e8823a','#c1503f','#e0b23a','#8e5fd1','#2fb6c4','#d1477a','#6ab04c','#576cd1','#e0798a','#7f8c8d'];
+const BUDGET_UNALLOCATED_COLOR = '#c9d1cd';
+
+function loadBudgetState(){
+  try{
+    const raw = localStorage.getItem(BUDGET_LS_KEY);
+    if(!raw) return;
+    const state = JSON.parse(raw);
+    if(state && typeof state === 'object'){
+      budgetState.hasOverview = !!(state.hasOverview || state.isSetup);
+      budgetState.income = Number(state.income) || 0;
+      if(Array.isArray(state.categories)) budgetState.categories = state.categories;
+      budgetIdCounter = (budgetState.categories.reduce((m,c) => Math.max(m, Number((c.id||'').toString().replace('bc',''))||0), 0)) + 1;
+    }
+  }catch(e){ console.warn('Could not read budget state:', e); }
+}
+function saveBudgetState(){
+  try{ localStorage.setItem(BUDGET_LS_KEY, JSON.stringify(budgetState)); }
+  catch(e){ console.warn('Could not save budget state:', e); }
+}
+function seedBudgetCategories(){
+  budgetState.categories = BUDGET_SUGGESTED_CATEGORIES.map(c => ({ id: 'bc' + (budgetIdCounter++), name: c.name, icon: c.icon, amount: 0 }));
+}
+function fmtMoney(n){
+  return '£' + (Number(n)||0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function budgetCategoryColor(index){
+  return BUDGET_CHART_PALETTE[index % BUDGET_CHART_PALETTE.length];
+}
+
+const budgetEmptyStateEl = document.getElementById('budgetEmptyState');
+const budgetIncomeStepEl = document.getElementById('budgetIncomeStep');
+const budgetCategoriesStepEl = document.getElementById('budgetCategoriesStep');
+const budgetOverviewStateEl = document.getElementById('budgetOverviewState');
+const budgetIncomeInput = document.getElementById('budgetIncomeInput');
+const budgetCategoryListEl = document.getElementById('budgetCategoryList');
+
+function showBudgetStep(step){
+  budgetUiStep = step;
+  budgetEmptyStateEl.style.display = step === 'empty' ? '' : 'none';
+  budgetIncomeStepEl.style.display = step === 'income' ? '' : 'none';
+  budgetCategoriesStepEl.style.display = step === 'categories' ? '' : 'none';
+  budgetOverviewStateEl.style.display = step === 'overview' ? '' : 'none';
+  if(step === 'categories') renderBudgetCategoriesStep();
+  if(step === 'overview') renderBudgetOverview();
+}
+
+function renderBudget(){
+  showBudgetStep(budgetState.hasOverview ? 'overview' : 'empty');
+}
+
+function renderBudgetCategoriesStep(){
+  const total = budgetState.categories.reduce((sum, c) => sum + (Number(c.amount)||0), 0);
+  const income = Number(budgetState.income) || 0;
+  const pct = income > 0 ? Math.round((total / income) * 100) : 0;
+  document.getElementById('budgetPctSet').textContent = pct + '% set';
+  document.getElementById('budgetAllocatedTotal').textContent = fmtMoney(total) + '/' + fmtMoney(income);
+  const fill = document.getElementById('budgetProgressFill');
+  fill.style.width = Math.min(100, pct) + '%';
+  fill.parentElement.classList.toggle('over', total > income);
+  const remaining = income - total;
+  const leftEl = document.getElementById('budgetLeftToAllocate');
+  leftEl.textContent = remaining >= 0 ? fmtMoney(remaining) + ' left to allocate' : fmtMoney(Math.abs(remaining)) + ' over your income';
+  leftEl.style.color = remaining < 0 ? 'var(--red)' : 'var(--muted)';
+
+  budgetCategoryListEl.innerHTML = budgetState.categories.map(c => `
+    <div class="budget-cat-row" data-cat-id="${c.id}" style="cursor:default;">
+      <span class="budget-cat-icon" data-open-edit="${c.id}" style="cursor:pointer;">${iconSvg(c.icon)}</span>
+      <span class="budget-cat-info" data-open-edit="${c.id}" style="cursor:pointer;">
+        <span class="budget-cat-name">${c.name}</span>
+        <span class="budget-cat-avg">Avg £0.00</span>
+      </span>
+      <span class="field budget-cat-amount-field">
+        <span class="prefix-wrap">
+          <span class="prefix">£</span>
+          <input type="text" inputmode="numeric" class="budget-cat-amount" data-money="1" data-cat-amount="${c.id}" value="${c.amount ? Number(c.amount).toLocaleString('en-GB') : ''}" placeholder="0">
+        </span>
+      </span>
+      ${budgetManageMode ? `<button type="button" class="budget-cat-manage-btn" data-remove-cat="${c.id}" aria-label="Remove category">&times;</button>` : ''}
+    </div>
+  `).join('');
+  injectClearButtons(budgetCategoryListEl);
+
+  budgetCategoryListEl.querySelectorAll('input[data-cat-amount]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const cursorFromEnd = inp.value.length - inp.selectionStart;
+      inp.value = formatMoneyValue(inp.value);
+      const pos = Math.max(0, inp.value.length - cursorFromEnd);
+      inp.setSelectionRange(pos, pos);
+      const cat = budgetState.categories.find(c => c.id === inp.dataset.catAmount);
+      if(cat){ cat.amount = Number(inp.value.replace(/,/g,'')) || 0; }
+      renderBudgetCategoriesStep_totalsOnly();
+      saveBudgetState();
+    });
+  });
+  budgetCategoryListEl.querySelectorAll('[data-open-edit]').forEach(el => {
+    el.addEventListener('click', () => openBudgetCategoryModal(el.dataset.openEdit));
+  });
+  budgetCategoryListEl.querySelectorAll('[data-remove-cat]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      budgetState.categories = budgetState.categories.filter(c => c.id !== btn.dataset.removeCat);
+      saveBudgetState();
+      renderBudgetCategoriesStep();
+    });
+  });
+
+  document.getElementById('manageCategoriesBtn').textContent = budgetManageMode ? 'Done' : 'Manage ›';
+}
+
+// Cheap re-render of just the totals bar, so typing in an amount field doesn't rebuild
+// (and steal focus from) the whole category list on every keystroke.
+function renderBudgetCategoriesStep_totalsOnly(){
+  const total = budgetState.categories.reduce((sum, c) => sum + (Number(c.amount)||0), 0);
+  const income = Number(budgetState.income) || 0;
+  const pct = income > 0 ? Math.round((total / income) * 100) : 0;
+  document.getElementById('budgetPctSet').textContent = pct + '% set';
+  document.getElementById('budgetAllocatedTotal').textContent = fmtMoney(total) + '/' + fmtMoney(income);
+  const fill = document.getElementById('budgetProgressFill');
+  fill.style.width = Math.min(100, pct) + '%';
+  fill.parentElement.classList.toggle('over', total > income);
+  const remaining = income - total;
+  const leftEl = document.getElementById('budgetLeftToAllocate');
+  leftEl.textContent = remaining >= 0 ? fmtMoney(remaining) + ' left to allocate' : fmtMoney(Math.abs(remaining)) + ' over your income';
+  leftEl.style.color = remaining < 0 ? 'var(--red)' : 'var(--muted)';
+}
+
+// ---- Budget overview (landing page once a budget exists): donut chart + summary ----
+function renderBudgetOverview(){
+  const income = Number(budgetState.income) || 0;
+  const cats = budgetState.categories.filter(c => (Number(c.amount)||0) > 0);
+  const total = cats.reduce((sum, c) => sum + (Number(c.amount)||0), 0);
+  const pct = income > 0 ? Math.round((total / income) * 100) : 0;
+  const remaining = income - total;
+
+  document.getElementById('budgetOverviewSubtitle').textContent = `Here's how your ${fmtMoney(income)} monthly income is allocated.`;
+  document.getElementById('budgetOverviewIncome').textContent = fmtMoney(income);
+  document.getElementById('budgetOverviewAllocated').textContent = fmtMoney(total);
+  document.getElementById('budgetOverviewRemainingLabel').textContent = remaining >= 0 ? 'Left to allocate' : 'Over your income';
+  const remainingEl = document.getElementById('budgetOverviewRemaining');
+  remainingEl.textContent = fmtMoney(Math.abs(remaining));
+  remainingEl.style.color = remaining < 0 ? 'var(--red)' : 'var(--text)';
+  document.getElementById('budgetDonutCenterPct').textContent = pct + '%';
+
+  const ctx = document.getElementById('budgetDonutCanvas');
+  if(budgetDonutChart){ budgetDonutChart.destroy(); budgetDonutChart = null; }
+
+  const labels = cats.map(c => c.name);
+  const data = cats.map(c => Number(c.amount)||0);
+  const colors = cats.map((c, i) => budgetCategoryColor(budgetState.categories.indexOf(c)));
+  if(remaining > 0){
+    labels.push('Unallocated');
+    data.push(remaining);
+    colors.push(BUDGET_UNALLOCATED_COLOR);
+  }
+  if(!data.length){
+    data.push(1);
+    labels.push('No categories yet');
+    colors.push(BUDGET_UNALLOCATED_COLOR);
+  }
+
+  budgetDonutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--panel') || '#fff' }] },
+    options: {
+      cutout: '72%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (item) => `${item.label}: ${fmtMoney(item.raw)}` } } },
+      animation: { duration: 400 }
+    }
+  });
+}
+
+function openBudgetBreakdownModal(){
+  const income = Number(budgetState.income) || 0;
+  const total = budgetState.categories.reduce((sum, c) => sum + (Number(c.amount)||0), 0);
+  const remaining = income - total;
+  const rows = budgetState.categories
+    .map((c, i) => ({ name: c.name, amount: Number(c.amount)||0, color: budgetCategoryColor(i) }))
+    .filter(r => r.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+  if(remaining > 0) rows.push({ name: 'Unallocated', amount: remaining, color: BUDGET_UNALLOCATED_COLOR });
+
+  const listEl = document.getElementById('budgetBreakdownList');
+  if(!rows.length){
+    listEl.innerHTML = `<div class="empty-note">No categories have been allocated yet.</div>`;
+  } else {
+    listEl.innerHTML = rows.map(r => {
+      const pct = income > 0 ? Math.round((r.amount / income) * 100) : 0;
+      return `
+        <div class="budget-legend-row">
+          <span class="budget-legend-swatch" style="background:${r.color};"></span>
+          <span class="budget-legend-name">${r.name}</span>
+          <span class="budget-legend-pct">${pct}%</span>
+          <span class="budget-legend-amount">${fmtMoney(r.amount)}</span>
+        </div>`;
+    }).join('');
+  }
+  openModal('budgetBreakdownModalOverlay');
+}
+document.getElementById('budgetDonutWrap').addEventListener('click', openBudgetBreakdownModal);
+document.getElementById('budgetDonutWrap').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openBudgetBreakdownModal(); }
+});
+document.getElementById('editBudgetBtn').addEventListener('click', () => {
+  showBudgetStep('categories');
+});
+
+document.getElementById('setupBudgetBtn').addEventListener('click', () => {
+  showBudgetStep('income');
+  budgetIncomeInput.value = budgetState.income ? Number(budgetState.income).toLocaleString('en-GB') : '';
+  attachMoneyFormatting();
+  budgetIncomeInput.focus();
+});
+document.getElementById('budgetIncomeContinueBtn').addEventListener('click', () => {
+  const val = Number((budgetIncomeInput.value || '').replace(/,/g,'')) || 0;
+  budgetState.income = val;
+  if(!budgetState.categories.length) seedBudgetCategories();
+  saveBudgetState();
+  showBudgetStep('categories');
+});
+document.getElementById('budgetIncomeCancelBtn').addEventListener('click', () => {
+  showBudgetStep(budgetState.hasOverview ? 'overview' : 'empty');
+});
+document.getElementById('budgetContinueBtn').addEventListener('click', () => {
+  budgetState.hasOverview = true;
+  saveBudgetState();
+  showBudgetStep('overview');
+});
+document.getElementById('budgetClearBtn').addEventListener('click', () => {
+  budgetState.categories.forEach(c => c.amount = 0);
+  saveBudgetState();
+  renderBudgetCategoriesStep();
+});
+document.getElementById('budgetCancelBtn').addEventListener('click', () => {
+  budgetManageMode = false;
+  showBudgetStep(budgetState.hasOverview ? 'overview' : 'empty');
+});
+document.getElementById('manageCategoriesBtn').addEventListener('click', () => {
+  budgetManageMode = !budgetManageMode;
+  renderBudgetCategoriesStep();
+});
+document.getElementById('addNewCategoryBtn').addEventListener('click', () => {
+  openBudgetCategoryModal(null);
+});
+
+const budgetCategoryModalOverlay = document.getElementById('budgetCategoryModalOverlay');
+const budgetCategoryNameInput = document.getElementById('budgetCategoryNameInput');
+const budgetIconPickerGrid = document.getElementById('budgetIconPickerGrid');
+const BUDGET_ICON_CHOICES = ['bolt','cart','utensils','bus','film','tshirt','pulse','phone','heart','gift','piggy','briefcase','coin','palm','home','shield','star','paw'];
+
+function renderBudgetIconPicker(){
+  budgetIconPickerGrid.innerHTML = BUDGET_ICON_CHOICES.map(key => `<button type="button" class="icon-picker-btn" data-budget-icon="${key}">${iconSvg(key)}</button>`).join('');
+  budgetIconPickerGrid.querySelectorAll('[data-budget-icon]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      budgetCategoryDraft.icon = btn.dataset.budgetIcon;
+      budgetIconPickerGrid.querySelectorAll('[data-budget-icon]').forEach(b => b.classList.toggle('selected', b.dataset.budgetIcon === budgetCategoryDraft.icon));
+    });
+  });
+}
+
+function renderBudgetCategorySuggestions(){
+  const wrap = document.getElementById('budgetCategorySuggestions');
+  const existingNames = budgetState.categories.map(c => c.name.toLowerCase());
+  const suggestions = BUDGET_SUGGESTED_CATEGORIES.filter(s => !existingNames.includes(s.name.toLowerCase()));
+  if(!suggestions.length){
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = suggestions.map(s => `
+    <div class="goal-suggestion" data-name="${s.name}" data-icon="${s.icon}">
+      <div class="icon-circle">${iconSvg(s.icon)}</div>
+      <span class="lbl">${s.name}</span>
+    </div>`).join('');
+  wrap.querySelectorAll('.goal-suggestion').forEach(el => {
+    el.addEventListener('click', () => {
+      budgetCategoryDraft.name = el.dataset.name;
+      budgetCategoryDraft.icon = el.dataset.icon;
+      budgetCategoryNameInput.value = el.dataset.name;
+      wrap.querySelectorAll('.goal-suggestion').forEach(x => x.classList.remove('selected'));
+      el.classList.add('selected');
+      budgetIconPickerGrid.querySelectorAll('[data-budget-icon]').forEach(b => b.classList.toggle('selected', b.dataset.budgetIcon === budgetCategoryDraft.icon));
+    });
+  });
+}
+function openBudgetCategoryModal(catId){
+  const existing = catId ? budgetState.categories.find(c => c.id === catId) : null;
+  budgetCategoryDraft = existing ? { id: existing.id, name: existing.name, icon: existing.icon } : { id: null, name: '', icon: 'star' };
+  document.getElementById('budgetCategoryModalTitle').textContent = existing ? 'Edit category' : 'Add a category';
+  budgetCategoryNameInput.value = budgetCategoryDraft.name;
+  document.getElementById('budgetCategoryDeleteBtn').style.display = existing ? '' : 'none';
+  document.getElementById('budgetCategorySuggestionsWrap').style.display = existing ? 'none' : '';
+  if(!existing) renderBudgetCategorySuggestions();
+  renderBudgetIconPicker();
+  budgetIconPickerGrid.querySelectorAll('[data-budget-icon]').forEach(b => b.classList.toggle('selected', b.dataset.budgetIcon === budgetCategoryDraft.icon));
+  budgetCategoryModalOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  budgetCategoryNameInput.focus();
+}
+document.getElementById('budgetCategorySaveBtn').addEventListener('click', () => {
+  const name = budgetCategoryNameInput.value.trim();
+  if(!name) return;
+  if(budgetCategoryDraft.id){
+    const cat = budgetState.categories.find(c => c.id === budgetCategoryDraft.id);
+    if(cat){ cat.name = name; cat.icon = budgetCategoryDraft.icon; }
+  } else {
+    budgetState.categories.push({ id: 'bc' + (budgetIdCounter++), name, icon: budgetCategoryDraft.icon, amount: 0 });
+  }
+  saveBudgetState();
+  closeModal('budgetCategoryModalOverlay');
+  renderBudgetCategoriesStep();
+});
+document.getElementById('budgetCategoryDeleteBtn').addEventListener('click', () => {
+  if(budgetCategoryDraft.id){
+    budgetState.categories = budgetState.categories.filter(c => c.id !== budgetCategoryDraft.id);
+    saveBudgetState();
+  }
+  closeModal('budgetCategoryModalOverlay');
+  renderBudgetCategoriesStep();
+});
+
+loadBudgetState();
 
 showView('overview');
 
